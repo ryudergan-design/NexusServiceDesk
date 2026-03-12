@@ -1,0 +1,12 @@
+{
+  "workflow": "gsd",
+  "auto": true,
+  "research_enabled": true,
+  "stack": "Next.js + Tailwind + SQLite/Prisma",
+  "brand_style": "Dark Mode, Modern, Animated",
+  "reference_urls": [
+    "https://www.softdesk.com.br/perguntas-frequentes/",
+    "https://www.softdesk.com.br/recursos/",
+    "https://www.softdesk.com.br/blog/"
+  ]
+}
