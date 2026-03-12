@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { RichTextEditor } from "@/components/rich-text-editor"
 import {
   Select,
   SelectContent,
@@ -57,6 +57,7 @@ export default function NewTicketPage() {
       type: "INCIDENT",
       impact: "LOW",
       urgency: "LOW",
+      description: "",
     }
   })
 
@@ -170,11 +171,10 @@ export default function NewTicketPage() {
 
             <div className="space-y-2">
               <Label htmlFor="description">Descrição Detalhada</Label>
-              <Textarea 
-                id="description" 
-                {...register("description")} 
+              <RichTextEditor 
+                value={watch("description") || ""} 
+                onChange={(v) => setValue("description", v, { shouldValidate: true })}
                 placeholder="Descreva o passo a passo para reproduzir o problema..." 
-                className="min-h-[150px] bg-white/5 border-white/10"
               />
               {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
             </div>

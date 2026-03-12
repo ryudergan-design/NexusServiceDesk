@@ -14,7 +14,10 @@
 - [x] **Schema com Roles:** Modelos `User`, `Account` e `Session` com `UserRole (ADMIN, AGENT, USER)`.
 - [x] **Auth.js v5:** Configurado com Prisma Adapter.
 - [x] **Middleware de Segurança:** Proteção de rotas em `src/middleware.ts`.
-- [ ] **LACUNA:** O `CredentialsProvider` no `auth.ts` está vazio (mockado). Falta lógica de verificação de senha real.
+- [x] **LÓGICA DE SENHA:** Implementada com `bcryptjs` na Fase 1.1 e validada via testes.
+
+## Arquivos de Teste Gerados
+- `tests/unit/auth.test.ts`: Valida a lógica de busca de usuário e comparação de hashes de senha.
 
 ### 3. Fluxos de Interface (UX)
 - [x] **Login High-Tech:** Implementado com validação Zod e animações de glow.

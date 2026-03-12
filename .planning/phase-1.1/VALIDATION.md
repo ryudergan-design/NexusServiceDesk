@@ -31,6 +31,9 @@
 | DB SQLite | Persiste dados localmente em `dev.db` | Falha graciosamente se arquivo estiver inacessível | ✅ |
 | Mobile Nav | Abre drawer ao clicar no menu hambúrguer | Fecha ao clicar no X ou fora | ✅ |
 
+## Arquivos de Teste Gerados
+- `tests/unit/auth.test.ts`: Valida a lógica de hash e bloqueio de usuários pendentes.
+
 ## Lacunas Identificadas (Gaps)
 - Nenhuma lacuna crítica identificada para esta subfase técnica. O sistema está 100% pronto para o desenvolvimento de funcionalidades de negócio (Fase 2).
 

@@ -31,6 +31,9 @@
 | Detail Page | Carrega dados e timeline completa | Retorna 404 se ID for inválido | ✅ |
 | Status Transition | Atualiza status e registra no histórico | Bloqueia transição se deslogado | ✅ |
 
+## Arquivos de Teste Gerados
+- `tests/unit/tickets.test.ts`: Valida a lógica de cálculo de prioridade ITIL.
+
 ## Lacunas Identificadas (Gaps)
 1. **UX:** O arraste (Drag & Drop) no Kanban é visual/animado, mas a persistência no banco via drop ainda não foi automatizada (depende de clique nos botões de ação na página de detalhe ou implementação futura no board).
 2. **SLA:** O cálculo de prioridade existe, mas o controle de cronômetro (SLA) é o foco da Fase 3.

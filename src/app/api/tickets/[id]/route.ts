@@ -6,51 +6,77 @@ import { differenceInMinutes } from "date-fns"
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
-  if (!session) return new NextResponse("Não autorizado", { status: 401 })
+  if (!session?.user?.id) return new NextResponse("Não autorizado", { status: 401 })
 
   try {
+    const { id } = await params
+    const ticketId = parseInt(id)
+    
+    if (isNaN(ticketId)) {
+      return new NextResponse("ID Inválido", { status: 400 })
+    }
+
+    const user = session.user as any
+    const activeRole = user.activeRole || user.role || "USER"
+    
+    // Buscar o chamado primeiro para validar acesso
     const ticket = await prisma.ticket.findUnique({
-      where: { id: params.id },
+      where: { id: ticketId },
       include: {
         category: true,
         requester: true,
         assignee: true,
         attachments: true,
+        survey: true,
         transitions: {
           include: { performedBy: true },
           orderBy: { createdAt: "desc" }
         },
         comments: {
+          where: activeRole === "USER" ? { isInternal: false } : {},
           include: { author: true },
           orderBy: { createdAt: "desc" }
         }
       }
     })
 
-    if (!ticket) return new NextResponse("Não encontrado", { status: 404 })
+    if (!ticket) return new NextResponse("Chamado não encontrado", { status: 404 })
+
+    // Segurança: Solicitante só vê o dele
+    if (activeRole === "USER" && ticket.requesterId !== user.id) {
+      return new NextResponse("Acesso negado a este chamado", { status: 403 })
+    }
 
     return NextResponse.json(ticket)
   } catch (error) {
-    return new NextResponse("Erro interno", { status: 500 })
+    console.error("[TICKET_GET_ERROR]", error)
+    return new NextResponse("Erro interno ao carregar chamado", { status: 500 })
   }
 }
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth()
   if (!session?.user?.id) return new NextResponse("Não autorizado", { status: 401 })
 
   try {
+    const { id } = await params
+    const ticketId = parseInt(id)
+
+    if (isNaN(ticketId)) {
+      return new NextResponse("ID Inválido", { status: 400 })
+    }
+
     const body = await req.json()
-    const { status, assigneeId, comment } = body
+    const { status, assigneeId, comment, isInternal, timeSpent, budgetAmount, budgetDescription, rating, feedback } = body
 
     const currentTicket = await prisma.ticket.findUnique({
-      where: { id: params.id }
+      where: { id: ticketId }
     })
 
     if (!currentTicket) return new NextResponse("Não encontrado", { status: 404 })
@@ -59,17 +85,16 @@ export async function PATCH(
       let slaData: any = {}
       const now = new Date()
 
-      // Lógica de Pausa de SLA (Pendente Usuário)
+      const isPauseStatus = (s: string) => s === "PENDING_USER" || s === "AWAITING_APPROVAL"
+
       if (status && status !== currentTicket.status) {
-        // Entrando em PENDENTE USUÁRIO
-        if (status === "PENDING_USER") {
+        if (isPauseStatus(status)) {
           slaData = {
             slaPaused: true,
             lastSlaPauseAt: now
           }
         } 
-        // Saindo de PENDENTE USUÁRIO
-        else if (currentTicket.status === "PENDING_USER") {
+        else if (isPauseStatus(currentTicket.status)) {
           const pauseStart = currentTicket.lastSlaPauseAt || currentTicket.updatedAt
           const realPausedMinutes = differenceInMinutes(now, pauseStart)
           const businessPausedMinutes = calculateBusinessMinutes(pauseStart, now)
@@ -78,7 +103,6 @@ export async function PATCH(
             slaPaused: false,
             totalPausedTime: currentTicket.totalPausedTime + realPausedMinutes,
             lastSlaPauseAt: null,
-            // Adiciona os minutos de horário comercial ao prazo original
             responseTimeDue: currentTicket.responseTimeDue 
               ? calculateSLA(currentTicket.responseTimeDue, businessPausedMinutes) 
               : null,
@@ -89,25 +113,76 @@ export async function PATCH(
         }
       }
 
+      // 1. Atualizar o Ticket
       const ticket = await tx.ticket.update({
-        where: { id: params.id },
+        where: { id: ticketId },
         data: {
           status: status || currentTicket.status,
-          assigneeId: assigneeId || currentTicket.assigneeId,
+          assigneeId: assigneeId !== undefined ? assigneeId : currentTicket.assigneeId,
+          budgetAmount: budgetAmount !== undefined ? parseFloat(budgetAmount) : currentTicket.budgetAmount,
+          budgetDescription: budgetDescription !== undefined ? budgetDescription : currentTicket.budgetDescription,
           ...slaData
         }
       })
 
+      // 2. Se houver avaliação (rating), gravar na nova tabela SatisfactionSurvey
+      if (rating !== undefined) {
+        await tx.satisfactionSurvey.upsert({
+          where: { ticketId: ticketId },
+          update: { rating, feedback },
+          create: {
+            rating,
+            feedback,
+            ticketId: ticketId,
+            userId: session.user.id!
+          }
+        })
+      }
+
+      // 3. Se for reabertura (Saindo de COMPLETED para TRIAGE), remover a pesquisa
+      if (currentTicket.status === "COMPLETED" && status === "TRIAGE") {
+        await tx.satisfactionSurvey.deleteMany({
+          where: { ticketId: ticketId }
+        })
+      }
+
+      // 4. Se mudar status para COMPLETED, criar notificação de pesquisa para o solicitante
+      if (status === "COMPLETED" && currentTicket.status !== "COMPLETED") {
+        await tx.notification.create({
+          data: {
+            userId: currentTicket.requesterId,
+            title: "Chamado Concluído",
+            message: `O chamado #${ticketId} foi concluído. Avalie o atendimento!`,
+            type: "SURVEY",
+            link: `/dashboard/tickets/${ticketId}?openSurvey=true`
+          }
+        })
+      }
+
+      // 5. Registrar a transição
       if (status && status !== currentTicket.status) {
         await tx.ticketTransition.create({
           data: {
-            ticketId: params.id,
+            ticketId: ticketId,
             fromStatus: currentTicket.status,
             toStatus: status,
             performedById: session.user.id!,
             comment: comment || `Status alterado de ${currentTicket.status} para ${status}.`
           }
         })
+
+        if (comment) {
+          await tx.ticketComment.create({
+            data: {
+              content: comment,
+              isInternal: !!isInternal,
+              isPrivate: !!isInternal,
+              timeSpent: parseInt(timeSpent) || 0,
+              ticketId: ticketId,
+              authorId: session.user.id!
+            }
+          })
+        }
       }
 
       return ticket

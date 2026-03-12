@@ -1,8 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -11,20 +9,19 @@ datasource db {
 }
 
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?
-  access_token       String?
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?
-  session_state      String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -38,29 +35,30 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          String    @default("USER") // ADMIN, AGENT, USER
-  approved      Boolean   @default(false)
-  department    String?
-  phone         String?
-  jobTitle      String?
-  
-  // Relacionamentos Ticketing
-  requestedTickets Ticket[]           @relation("RequestedTickets")
-  assignedTickets  Ticket[]           @relation("AssignedTickets")
-  transitions      TicketTransition[]
+  id               String             @id @default(cuid())
+  name             String?
+  email            String?            @unique
+  emailVerified    DateTime?
+  image            String?
+  password         String?
+  role             String             @default("USER")
+  approved         Boolean            @default(false)
+  department       String?
+  phone            String?
+  jobTitle         String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  accounts         Account[]
   attachments      Attachment[]
+  sessions         Session[]
+  assignedTickets  Ticket[]           @relation("AssignedTickets")
+  requestedTickets Ticket[]           @relation("RequestedTickets")
   comments         TicketComment[]
-
-  accounts      Account[]
-  sessions      Session[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  transitions      TicketTransition[]
+  auditLogs        AuditLog[]
+  accessLogs       AccessLog[]
+  surveys          SatisfactionSurvey[]
+  notifications    Notification[]
 }
 
 model Category {
@@ -80,65 +78,81 @@ model Subcategory {
 }
 
 model SLARule {
-  id              String   @id @default(cuid())
-  priority        String   @unique // LOW, MEDIUM, HIGH, CRITICAL
-  responseTime    Int      // em horas
-  resolutionTime  Int      // em horas
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  priority       String   @unique
+  responseTime   Int
+  resolutionTime Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
 model Ticket {
-  id          String   @id @default(cuid())
-  title       String
-  description String
-  type        String   @default("INCIDENT") // INCIDENT, REQUEST, BUG, SUGGESTION, QUESTION
-  status      String   @default("NEW")      // NEW, TRIAGE, DEVELOPMENT, TEST, COMPLETED
-  priority    String   @default("MEDIUM")   // LOW, MEDIUM, HIGH, CRITICAL
-  impact      String   @default("LOW")
-  urgency     String   @default("LOW")
-  
-  // SLA Fields
+  id                Int                @id @default(autoincrement())
+  title             String
+  description       String
+  type              String             @default("INCIDENT")
+  status            String             @default("NEW")
+  priority          String             @default("MEDIUM")
+  impact            String             @default("LOW")
+  urgency           String             @default("LOW")
   responseTimeDue   DateTime?
   resolutionTimeDue DateTime?
-  slaPaused         Boolean   @default(false)
+  slaPaused         Boolean            @default(false)
   lastSlaPauseAt    DateTime?
-  totalPausedTime   Int       @default(0) // em minutos
+  totalPausedTime   Int                @default(0)
+  requesterId       String
+  assigneeId        String?
+  categoryId        String
+  subcategoryId     String?
+  budgetAmount      Float?
+  budgetDescription String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  attachments       Attachment[]
+  subcategory       Subcategory?       @relation(fields: [subcategoryId], references: [id])
+  category          Category           @relation(fields: [categoryId], references: [id])
+  assignee          User?              @relation("AssignedTickets", fields: [assigneeId], references: [id])
+  requester         User               @relation("RequestedTickets", fields: [requesterId], references: [id])
+  comments          TicketComment[]
+  transitions       TicketTransition[]
+  survey            SatisfactionSurvey?
+}
 
-  // Relacionamentos
-  requesterId   String
-  requester     User     @relation("RequestedTickets", fields: [requesterId], references: [id])
+model SatisfactionSurvey {
+  id        String   @id @default(cuid())
+  rating    Int
+  feedback  String?
+  ticketId  Int      @unique
+  userId    String
+  createdAt DateTime @default(now())
   
-  assigneeId    String?
-  assignee      User?    @relation("AssignedTickets", fields: [assigneeId], references: [id])
-  
-  categoryId    String
-  category      Category @relation(fields: [categoryId], references: [id])
-  
-  subcategoryId String?
-  subcategory   Subcategory? @relation(fields: [subcategoryId], references: [id])
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+}
 
-  attachments   Attachment[]
-  transitions   TicketTransition[]
-  comments      TicketComment[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // INFO, WARNING, SUCCESS, SURVEY
+  read      Boolean  @default(false)
+  link      String?  // Link para o chamado
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model TicketTransition {
-  id         String   @id @default(cuid())
-  ticketId   String
-  ticket     Ticket   @relation(fields: [ticketId], references: [id])
-  
-  fromStatus String
-  toStatus   String
-  comment    String?
-  
+  id            String   @id @default(cuid())
+  ticketId      Int
+  fromStatus    String
+  toStatus      String
+  comment       String?
   performedById String
-  performedBy   User   @relation(fields: [performedById], references: [id])
-  
-  createdAt  DateTime @default(now())
+  createdAt     DateTime @default(now())
+  performedBy   User     @relation(fields: [performedById], references: [id])
+  ticket        Ticket   @relation(fields: [ticketId], references: [id])
 }
 
 model TicketComment {
@@ -147,29 +161,45 @@ model TicketComment {
   isPrivate  Boolean  @default(false)
   isInternal Boolean  @default(false)
   timeSpent  Int      @default(0)
-  
-  ticketId   String
-  ticket     Ticket   @relation(fields: [ticketId], references: [id])
-  
+  ticketId   Int
   authorId   String
-  author     User     @relation(fields: [authorId], references: [id])
-  
   createdAt  DateTime @default(now())
+  author     User     @relation(fields: [authorId], references: [id])
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
 }
 
 model Attachment {
-  id        String   @id @default(cuid())
-  filename  String
-  fileUrl   String
-  mimeType  String
-  size      Int
-  
-  ticketId  String
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
-  
+  id           String   @id @default(cuid())
+  filename     String
+  fileUrl      String?  // Opcional agora que temos o conteúdo em Base64
+  content      String   // Conteúdo do arquivo em Base64
+  mimeType     String
+  size         Int
+  ticketId     Int
   uploadedById String
-  uploadedBy   User   @relation(fields: [uploadedById], references: [id])
-  
+  createdAt    DateTime @default(now())
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  ticket       Ticket   @relation(fields: [ticketId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  action    String   // CREATE, UPDATE, DELETE
+  entity    String   // Ticket, User, SLARule, etc
+  entityId  String
+  payload   String?  // JSON string com as mudanças
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model AccessLog {
+  id        String   @id @default(cuid())
+  action    String   // LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  ip        String?
+  userAgent String?
   createdAt DateTime @default(now())
 }
 

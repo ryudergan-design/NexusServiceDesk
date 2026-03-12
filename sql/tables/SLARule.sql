@@ -1,0 +1,8 @@
+CREATE TABLE "SLARule" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "priority" TEXT NOT NULL UNIQUE,
+    "responseTime" INTEGER NOT NULL,
+    "resolutionTime" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);

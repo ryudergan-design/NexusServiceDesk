@@ -1,15 +1,13 @@
 import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
-import { writeFile, mkdir } from "fs/promises"
-import path from "path"
 import { calculateSLA } from "@/lib/sla"
 
 export async function POST(req: Request) {
   const session = await auth()
   
   if (!session?.user?.id) {
-    return new NextResponse("Não autorizado", { status: 401 })
+    return new NextResponse("Nao autorizado", { status: 401 })
   }
 
   try {
@@ -24,16 +22,14 @@ export async function POST(req: Request) {
     const files = formData.getAll("attachments") as File[]
 
     if (!title || !description || !categoryId) {
-      return new NextResponse("Campos obrigatórios ausentes", { status: 400 })
+      return new NextResponse("Campos obrigatorios ausentes", { status: 400 })
     }
 
-    // Lógica ITIL simplificada de prioridade
     let priority = "MEDIUM"
     if (impact === "CRITICAL" || urgency === "CRITICAL") priority = "CRITICAL"
     else if (impact === "HIGH" && urgency === "HIGH") priority = "HIGH"
     else if (impact === "LOW" && urgency === "LOW") priority = "LOW"
 
-    // Buscar regras de SLA no banco
     const slaRule = await prisma.sLARule.findUnique({
       where: { priority }
     })
@@ -43,7 +39,6 @@ export async function POST(req: Request) {
     const resolutionDue = slaRule ? calculateSLA(now, slaRule.resolutionTime) : null
 
     const ticket = await prisma.$transaction(async (tx) => {
-      // 1. Criar o Ticket
       const newTicket = await tx.ticket.create({
         data: {
           title,
@@ -61,35 +56,28 @@ export async function POST(req: Request) {
         }
       })
 
-      // 2. Registrar Transição Inicial (Audit Trail)
       await tx.ticketTransition.create({
         data: {
           ticketId: newTicket.id,
           fromStatus: "NONE",
           toStatus: "NEW",
           performedById: session.user.id!,
-          comment: "Abertura automática pelo sistema."
+          comment: "Abertura automatica pelo sistema."
         }
       })
 
-      // 3. Processar Anexos (Local Storage)
       if (files.length > 0) {
-        const uploadDir = path.join(process.cwd(), "public", "uploads", newTicket.id)
-        await mkdir(uploadDir, { recursive: true })
-
         for (const file of files) {
           if (file.size === 0) continue
           
           const bytes = await file.arrayBuffer()
           const buffer = Buffer.from(bytes)
-          const filePath = path.join(uploadDir, file.name)
-          
-          await writeFile(filePath, buffer)
+          const base64 = buffer.toString('base64')
 
           await tx.attachment.create({
             data: {
               filename: file.name,
-              fileUrl: `/uploads/${newTicket.id}/${file.name}`,
+              content: base64,
               mimeType: file.type,
               size: file.size,
               ticketId: newTicket.id,
@@ -111,20 +99,26 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   const session = await auth()
+  const user = session?.user as any
   
   if (!session?.user?.id) {
-    return new NextResponse("Não autorizado", { status: 401 })
+    return new NextResponse("Nao autorizado", { status: 401 })
   }
 
   const { searchParams } = new URL(req.url)
   const status = searchParams.get("status")
+  const unassigned = searchParams.get("unassigned") === "true"
   
   try {
+    const activeRole = user?.activeRole || user?.role
+    const isUserMode = activeRole === "USER"
+
     const tickets = await prisma.ticket.findMany({
       where: {
-        // Se não for ADMIN/AGENT, vê apenas os próprios
-        requesterId: (session.user as any).role === "USER" ? session.user.id : undefined,
-        status: status || undefined
+        // Filtro estrito: Se for Solicitante, só vê os seus.
+        requesterId: isUserMode ? session.user.id : undefined,
+        status: status || undefined,
+        assigneeId: unassigned ? null : undefined
       },
       include: {
         category: true,
@@ -133,6 +127,9 @@ export async function GET(req: Request) {
         },
         assignee: {
           select: { name: true, email: true }
+        },
+        _count: {
+          select: { comments: true }
         }
       },
       orderBy: {

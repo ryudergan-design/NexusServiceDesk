@@ -11,14 +11,14 @@ const prisma = new PrismaClient()
 
 async function main() {
   const adminEmail = "jefrsonsales@outlook.com"
-  const hashedPassword = await bcrypt.hash("I9Admin123", 10)
+  const hashedPassword = await bcrypt.hash("Fal.990544", 10)
 
   console.log("🌱 Iniciando Seed...")
 
   // 1. Criar Administrador
   const admin = await prisma.user.upsert({
     where: { email: adminEmail },
-    update: {},
+    update: { password: hashedPassword },
     create: {
       email: adminEmail,
       name: "Jefrson Sales",
@@ -31,6 +31,41 @@ async function main() {
     },
   })
   console.log(`✅ Administrador criado: ${admin.email}`)
+
+  // 1.1 Criar Usuário Luiz (Admin)
+  const luizPassword = await bcrypt.hash("Luiz8521@", 10)
+  const luiz = await prisma.user.upsert({
+    where: { email: "luizkaz175@gmail.com" },
+    update: { password: luizPassword },
+    create: {
+      email: "luizkaz175@gmail.com",
+      name: "Luiz",
+      password: luizPassword,
+      role: "ADMIN",
+      approved: true,
+      department: "TI / Suporte",
+      jobTitle: "Administrador",
+      phone: "(11) 99999-0000"
+    },
+  })
+  console.log(`✅ Luiz criado: ${luiz.email}`)
+
+  // 1.2 Criar Solicitante Padrão
+  const requester = await prisma.user.upsert({
+    where: { email: "solicitante@outlook.com" },
+    update: { password: hashedPassword },
+    create: {
+      email: "solicitante@outlook.com",
+      name: "Solicitante Teste",
+      password: hashedPassword,
+      role: "USER",
+      approved: true,
+      department: "Vendas",
+      jobTitle: "Consultor",
+      phone: "(11) 88888-8888"
+    },
+  })
+  console.log(`✅ Solicitante criado: ${requester.email}`)
 
   // 2. Criar Categorias e Subcategorias SaaS
   const categories = [

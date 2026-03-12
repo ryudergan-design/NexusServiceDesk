@@ -1,4 +1,15 @@
-import { addMinutes, isBefore, isAfter, setHours, setMinutes, startOfNextDay, isWeekend, getDay, differenceInMinutes } from "date-fns"
+import { 
+  addMinutes, 
+  isBefore, 
+  isAfter, 
+  setHours, 
+  setMinutes, 
+  startOfDay, 
+  addDays,
+  isWeekend, 
+  getDay, 
+  differenceInMinutes 
+} from "date-fns"
 
 const BUSINESS_START_HOUR = 9
 const BUSINESS_END_HOUR = 18
@@ -20,7 +31,7 @@ export function calculateSLA(startDate: Date, minutesToAdd: number): Date {
 
     // Se for Domingo, pula para Segunda 09:00
     if (isSunday) {
-      currentDate = setMinutes(setHours(startOfNextDay(currentDate), BUSINESS_START_HOUR), 0)
+      currentDate = setMinutes(setHours(addDays(startOfDay(currentDate), 1), BUSINESS_START_HOUR), 0)
       continue
     }
 
@@ -35,7 +46,7 @@ export function calculateSLA(startDate: Date, minutesToAdd: number): Date {
 
     // Se estiver após o horário comercial do dia, pula para o próximo dia 09:00
     if (isAfter(currentDate, businessEnd) || currentDate.getTime() === businessEnd.getTime()) {
-      currentDate = setMinutes(setHours(startOfNextDay(currentDate), BUSINESS_START_HOUR), 0)
+      currentDate = setMinutes(setHours(addDays(startOfDay(currentDate), 1), BUSINESS_START_HOUR), 0)
       continue
     }
 
@@ -66,7 +77,7 @@ export function calculateBusinessMinutes(startDate: Date, endDate: Date): number
     const isSunday = dayOfWeek === 0
 
     if (isSunday) {
-      current = setMinutes(setHours(startOfNextDay(current), BUSINESS_START_HOUR), 0)
+      current = setMinutes(setHours(addDays(startOfDay(current), 1), BUSINESS_START_HOUR), 0)
       continue
     }
 
@@ -80,7 +91,7 @@ export function calculateBusinessMinutes(startDate: Date, endDate: Date): number
     }
 
     if (isAfter(current, businessEnd) || current.getTime() === businessEnd.getTime()) {
-      current = setMinutes(setHours(startOfNextDay(current), BUSINESS_START_HOUR), 0)
+      current = setMinutes(setHours(addDays(startOfDay(current), 1), BUSINESS_START_HOUR), 0)
       continue
     }
 
@@ -91,4 +102,23 @@ export function calculateBusinessMinutes(startDate: Date, endDate: Date): number
   }
 
   return Math.round(minutes)
+}
+
+/**
+ * Retorna o percentual de tempo consumido do SLA (0-100)
+ */
+export function calculateSLAPercentage(createdAt: Date, dueAt: Date | null): number {
+  if (!dueAt) return 0
+  const now = new Date()
+  
+  // Se já passou do prazo, 100%
+  if (isAfter(now, dueAt)) return 100
+
+  const totalBusinessMinutes = calculateBusinessMinutes(createdAt, dueAt)
+  const consumedBusinessMinutes = calculateBusinessMinutes(createdAt, now)
+
+  if (totalBusinessMinutes <= 0) return 0
+  
+  const percentage = (consumedBusinessMinutes / totalBusinessMinutes) * 100
+  return Math.min(Math.round(percentage), 100)
 }
