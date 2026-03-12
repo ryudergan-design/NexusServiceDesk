@@ -142,17 +142,19 @@ model TicketTransition {
 }
 
 model TicketComment {
-  id        String   @id @default(cuid())
-  content   String
-  isPrivate Boolean  @default(false)
+  id         String   @id @default(cuid())
+  content    String
+  isPrivate  Boolean  @default(false)
+  isInternal Boolean  @default(false)
+  timeSpent  Int      @default(0)
   
-  ticketId  String
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
   
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
+  authorId   String
+  author     User     @relation(fields: [authorId], references: [id])
   
-  createdAt DateTime @default(now())
+  createdAt  DateTime @default(now())
 }
 
 model Attachment {
