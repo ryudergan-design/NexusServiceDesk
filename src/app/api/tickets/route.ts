@@ -49,7 +49,7 @@ export async function POST(req: Request) {
           impact,
           urgency,
           priority,
-          requesterId: session.user.id!,
+          requesterId: (session.user as any).id!,
           status: "NEW",
           responseTimeDue: responseDue,
           resolutionTimeDue: resolutionDue
@@ -61,7 +61,7 @@ export async function POST(req: Request) {
           ticketId: newTicket.id,
           fromStatus: "NONE",
           toStatus: "NEW",
-          performedById: session.user.id!,
+          performedById: (session.user as any).id!,
           comment: "Abertura automatica pelo sistema."
         }
       })
@@ -81,7 +81,7 @@ export async function POST(req: Request) {
               mimeType: file.type,
               size: file.size,
               ticketId: newTicket.id,
-              uploadedById: session.user.id!
+              uploadedById: (session.user as any).id!
             }
           })
         }
@@ -108,25 +108,46 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const status = searchParams.get("status")
   const unassigned = searchParams.get("unassigned") === "true"
+  const agentId = searchParams.get("agentId")
   
   try {
     const activeRole = user?.activeRole || user?.role
     const isUserMode = activeRole === "USER"
+    const view = searchParams.get("view")
+
+    // Lógica de Fila: 
+    // 1. Se for modo Cliente -> Vê os que ele abriu (requesterId)
+    // 2. Se houver agentId na URL -> Vê a fila daquele atendente específico (supervisão)
+    // 3. Se for fila 'unassigned' -> Vê os sem atendente
+    // 4. Se houver um view específico (assigned) -> Filtra por user.id
+    // 5. Caso contrário (Todos os Chamados) -> Não filtra assigneeId (vê tudo)
+
+    let assigneeFilter: any = undefined
+    
+    if (!isUserMode) {
+      if (unassigned) {
+        assigneeFilter = null
+      } else if (agentId) {
+        assigneeFilter = agentId
+      } else if (view === "assigned") {
+        assigneeFilter = user.id
+      }
+      // Se não houver nenhum dos acima, assigneeFilter continua undefined (vê tudo)
+    }
 
     const tickets = await prisma.ticket.findMany({
       where: {
-        // Filtro estrito: Se for Solicitante, só vê os seus.
-        requesterId: isUserMode ? session.user.id : undefined,
+        requesterId: isUserMode ? user.id : undefined,
         status: status || undefined,
-        assigneeId: unassigned ? null : undefined
+        assigneeId: assigneeFilter
       },
       include: {
         category: true,
         requester: {
-          select: { name: true, email: true }
+          select: { name: true, email: true, id: true }
         },
         assignee: {
-          select: { name: true, email: true }
+          select: { name: true, email: true, id: true, isAI: true }
         },
         _count: {
           select: { comments: true }

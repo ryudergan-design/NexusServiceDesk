@@ -20,7 +20,40 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/api/auth/[...nextauth]",
+      "regex": "^/api/auth/(.+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPnextauth": "nxtPnextauth"
+      },
+      "namedRegex": "^/api/auth/(?<nxtPnextauth>.+?)(?:/)?$"
+    },
+    {
+      "page": "/api/tickets/[id]",
+      "regex": "^/api/tickets/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/tickets/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/tickets/[id]/comments",
+      "regex": "^/api/tickets/([^/]+?)/comments(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/tickets/(?<nxtPid>[^/]+?)/comments(?:/)?$"
+    },
+    {
+      "page": "/dashboard/tickets/[id]",
+      "regex": "^/dashboard/tickets/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/tickets/(?<nxtPid>[^/]+?)(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
@@ -41,10 +74,76 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/admin/nps-dashboard",
+      "regex": "^/admin/nps\\-dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/nps\\-dashboard(?:/)?$"
+    },
+    {
+      "page": "/api/ai/curation",
+      "regex": "^/api/ai/curation(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/curation(?:/)?$"
+    },
+    {
+      "page": "/api/ai/nps-analysis",
+      "regex": "^/api/ai/nps\\-analysis(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/nps\\-analysis(?:/)?$"
+    },
+    {
       "page": "/api/auth/register",
       "regex": "^/api/auth/register(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/api/auth/register(?:/)?$"
+    },
+    {
+      "page": "/api/auth/switch-role",
+      "regex": "^/api/auth/switch\\-role(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth/switch\\-role(?:/)?$"
+    },
+    {
+      "page": "/api/categories",
+      "regex": "^/api/categories(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/categories(?:/)?$"
+    },
+    {
+      "page": "/api/dashboard/audit",
+      "regex": "^/api/dashboard/audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dashboard/audit(?:/)?$"
+    },
+    {
+      "page": "/api/dashboard/export",
+      "regex": "^/api/dashboard/export(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dashboard/export(?:/)?$"
+    },
+    {
+      "page": "/api/notifications",
+      "regex": "^/api/notifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/notifications(?:/)?$"
+    },
+    {
+      "page": "/api/stats",
+      "regex": "^/api/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/stats(?:/)?$"
+    },
+    {
+      "page": "/api/tickets",
+      "regex": "^/api/tickets(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/tickets(?:/)?$"
+    },
+    {
+      "page": "/api/users/staff",
+      "regex": "^/api/users/staff(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/users/staff(?:/)?$"
     },
     {
       "page": "/auth/login",
@@ -63,6 +162,36 @@
       "regex": "^/dashboard(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard(?:/)?$"
+    },
+    {
+      "page": "/dashboard/admin/users",
+      "regex": "^/dashboard/admin/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/admin/users(?:/)?$"
+    },
+    {
+      "page": "/dashboard/profile",
+      "regex": "^/dashboard/profile(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/profile(?:/)?$"
+    },
+    {
+      "page": "/dashboard/tickets",
+      "regex": "^/dashboard/tickets(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/tickets(?:/)?$"
+    },
+    {
+      "page": "/dashboard/tickets/new",
+      "regex": "^/dashboard/tickets/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/tickets/new(?:/)?$"
+    },
+    {
+      "page": "/dashboard/tickets/unassigned",
+      "regex": "^/dashboard/tickets/unassigned(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/tickets/unassigned(?:/)?$"
     }
   ],
   "dataRoutes": [],

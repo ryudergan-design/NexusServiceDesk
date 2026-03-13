@@ -1,61 +1,86 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
-import { motion } from "framer-motion"
+import { useSearchParams } from "next/navigation"
 import { 
   Plus, 
   Search, 
-  Filter, 
-  Clock,
-  Bug,
-  Lightbulb,
-  MessageSquare,
-  User as UserIcon
+  Filter
 } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { SLAProgress } from "@/components/dashboard/sla-progress"
+import { KanbanView } from "@/components/dashboard/kanban-view"
+import { DeskView } from "@/components/dashboard/desk-view"
+import { ViewToggle, ViewMode } from "@/components/dashboard/view-toggle"
+import { TicketQuickView } from "@/components/dashboard/ticket-quick-view"
+import { cn } from "@/lib/utils"
 
-const statusColumns = [
-  { id: "NEW", label: "Novos", color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
-  { id: "TRIAGE", label: "Em Triagem", color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-  { id: "PENDING_USER", label: "Aguardando Usuário", color: "bg-orange-500/10 text-orange-500 border-orange-500/20" },
-  { id: "AWAITING_APPROVAL", label: "Aguardando Aprovação", color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
-  { id: "DEVELOPMENT", label: "Desenvolvimento", color: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20" },
-  { id: "TEST", label: "Em Teste", color: "bg-pink-500/10 text-pink-500 border-pink-500/20" },
-  { id: "COMPLETED", label: "Concluídos", color: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
-]
-
-const priorityColors: Record<string, string> = {
-  LOW: "bg-slate-500/20 text-slate-400",
-  MEDIUM: "bg-blue-500/20 text-blue-400",
-  HIGH: "bg-orange-500/20 text-orange-400",
-  CRITICAL: "bg-red-500/20 text-red-400",
-}
-
-export default function TicketsPage() {
+function TicketsPageContent() {
   const [tickets, setTickets] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [viewMode, setViewMode] = useState<ViewMode>("kanban")
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+  
   const searchParams = useSearchParams()
   const view = searchParams.get("view")
+  const agentId = searchParams.get("agentId")
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [selectedAgent, setSelectedAgent] = useState<any>(null)
+
+  const fetchTickets = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (view) params.append("view", view)
+      if (agentId) params.append("agentId", agentId)
+      
+      const res = await fetch(`/api/tickets?${params.toString()}`)
+      const data = await res.json()
+      setTickets(Array.isArray(data) ? data : [])
+    } catch (e) {
+      setTickets([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    fetch("/api/tickets")
-      .then(res => res.json())
-      .then(data => {
-        setTickets(data)
-        setIsLoading(false)
+    if (agentId) {
+      fetch("/api/users/staff").then(res => res.json()).then(data => {
+        const agent = data.find((a: any) => a.id === agentId)
+        setSelectedAgent(agent)
       })
-    
+    } else {
+      setSelectedAgent(null)
+    }
+  }, [agentId])
+
+  useEffect(() => {
+    // Carregar preferência de visualização
+    if (typeof window !== "undefined") {
+      const savedMode = localStorage.getItem("i9-tickets-view-mode") as ViewMode
+      if (savedMode) setViewMode(savedMode)
+    }
+
+    fetchTickets()
     fetch("/api/auth/session").then(res => res.json()).then(data => setCurrentUser(data?.user))
-  }, [])
+  }, [view, agentId])
+
+  const handleViewChange = (mode: ViewMode) => {
+    setViewMode(mode)
+    localStorage.setItem("i9-tickets-view-mode", mode)
+    // Disparar evento para a sidebar reagir
+    window.dispatchEvent(new Event("storage"))
+  }
+
+  const handleSelectTicket = (id: string) => {
+    setSelectedTicketId(id)
+    setIsQuickViewOpen(true)
+  }
 
   const filteredTickets = tickets.filter(t => {
     const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,9 +90,12 @@ export default function TicketsPage() {
 
     if (!currentUser) return true
 
-    // Segurança: Solicitante NUNCA vê chamado de outro
+    // Segurança: Cliente NUNCA vê chamado de outro
     const activeRole = currentUser.activeRole || "USER"
     if (activeRole === "USER" && t.requesterId !== currentUser.id) return false
+
+    // Filtro por Agente (Query Param)
+    if (agentId && t.assigneeId !== agentId) return false
 
     switch (view) {
       case "assigned":
@@ -90,9 +118,10 @@ export default function TicketsPage() {
   })
 
   const getPageTitle = () => {
+    if (agentId) return `Fila de: ${selectedAgent?.name || "Carregando..."}`
     switch (view) {
       case "assigned": return "Meus Atendimentos"
-      case "pending_user": return "Aguardando Solicitante"
+      case "pending_user": return "Aguardando Cliente"
       case "awaiting_approval": return "Aguardando Aprovação"
       case "my_open": return "Minhas Solicitações Abertas"
       case "my_closed": return "Minhas Solicitações Encerradas"
@@ -103,22 +132,41 @@ export default function TicketsPage() {
   }
 
   return (
-    <div className="space-y-8 h-full flex flex-col">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className={cn(
+      "space-y-8 h-full flex flex-col transition-all duration-500",
+      viewMode === "kanban" ? "max-w-none" : "max-w-7xl mx-auto w-full px-4"
+    )}>
+      <TicketQuickView 
+        ticketId={selectedTicketId} 
+        open={isQuickViewOpen} 
+        onOpenChange={setIsQuickViewOpen}
+        onUpdate={fetchTickets}
+      />
+
+      <div className={cn(
+        "flex flex-col gap-4 md:flex-row md:items-center md:justify-between",
+        viewMode === "kanban" && "px-2"
+      )}>
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">
             {getPageTitle()}
           </h1>
           <p className="text-muted-foreground">Gerencie e acompanhe o ciclo de vida dos atendimentos.</p>
         </div>
-        <Link href="/dashboard/tickets/new">
-          <Button className="bg-primary hover:bg-primary/90 text-white">
-            <Plus className="mr-2 h-4 w-4" /> Novo Chamado
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <ViewToggle mode={viewMode} onChange={handleViewChange} />
+          <Link href="/dashboard/tickets/new">
+            <Button className="bg-primary hover:bg-primary/90 text-white">
+              <Plus className="mr-2 h-4 w-4" /> Novo Chamado
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className={cn(
+        "flex items-center gap-4",
+        viewMode === "kanban" && "px-2"
+      )}>
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
           <Input 
@@ -133,102 +181,52 @@ export default function TicketsPage() {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-x-auto pb-4 custom-scrollbar">
-        <div className="flex gap-6 min-w-max h-full">
-          {statusColumns.map((column) => (
-            <div key={column.id} className="w-80 flex flex-col gap-4">
-              <div className="flex items-center justify-between px-2">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className={column.color}>
-                    {column.label}
-                  </Badge>
-                  <span className="text-xs text-white/30 font-medium">
-                    {filteredTickets.filter(t => t.status === column.id).length}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex-1 space-y-4 p-2 rounded-xl bg-white/[0.02] border border-white/5 overflow-y-auto custom-scrollbar max-h-[600px]">
-                {filteredTickets
-                  .filter(t => t.status === column.id)
-                  .map((ticket) => (
-                    <motion.div
-                      key={ticket.id}
-                      layoutId={ticket.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                    >
-                      <Link href={`/dashboard/tickets/${ticket.id}`}>
-                        <Card className="border-white/10 bg-white/5 hover:bg-white/[0.08] transition-all cursor-pointer group group">
-                          <CardContent className="p-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Badge variant="outline" className={`text-[10px] uppercase tracking-wider ${priorityColors[ticket.priority]}`}>
-                                  {ticket.priority}
-                                </Badge>
-                                {(ticket.status === "PENDING_USER" || ticket.status === "AWAITING_APPROVAL") && ticket.requesterId === currentUser?.id && (
-                                  <Badge className="bg-amber-500 text-white border-0 text-[9px] animate-pulse">
-                                    Ação Requerida
-                                  </Badge>
-                                )}
-                              </div>
-                              <span className="text-[10px] text-white/30">#{ticket.id}</span>
-                            </div>
-                            
-                            <h4 className="text-sm font-semibold text-white group-hover:text-primary transition-colors line-clamp-2">
-                              {ticket.title}
-                            </h4>
-
-                            <SLAProgress 
-                              createdAt={ticket.createdAt} 
-                              dueAt={ticket.resolutionTimeDue} 
-                              label="Resolvido em" 
-                            />
-
-                            <div className="flex items-center gap-3 text-[11px] text-white/40">
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {new Date(ticket.createdAt).toLocaleDateString()}
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <MessageSquare className="h-3 w-3" />
-                                {ticket._count?.comments || 0}
-                              </div>
-                            </div>
-
-                            <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className="h-5 w-5 rounded-full bg-gradient-to-tr from-primary/20 to-accent/20 flex items-center justify-center border border-white/10">
-                                  <UserIcon className="h-3.5 w-3.5 text-white/50" />
-                                </div>
-                                <span className="text-[10px] text-white/60 truncate max-w-[100px]">
-                                  {ticket.requester.name}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                {ticket.type === "BUG" && <Bug className="h-3 w-3 text-red-400" />}
-                                {ticket.type === "SUGGESTION" && <Lightbulb className="h-3 w-3 text-amber-400" />}
-                                <span className="text-[10px] text-white/30 truncate max-w-[60px]">
-                                  {ticket.category.name}
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </Link>
-                    </motion.div>
-                  ))}
-                
-                {filteredTickets.filter(t => t.status === column.id).length === 0 && (
-                  <div className="h-24 flex items-center justify-center rounded-lg border border-dashed border-white/5">
-                    <p className="text-[11px] text-white/20 italic">Vazio</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+      {isLoading ? (
+        <div className="flex-1 flex items-center justify-center text-white/20 animate-pulse">
+          Carregando chamados...
         </div>
-      </div>
+      ) : (
+        <div className="flex-1 min-h-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={viewMode}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="h-full"
+            >
+              {viewMode === "kanban" ? (
+                <KanbanView 
+                  tickets={filteredTickets} 
+                  currentUser={currentUser} 
+                  onSelectTicket={handleSelectTicket} 
+                  onUpdate={fetchTickets}
+                />
+              ) : (
+                <DeskView 
+                  tickets={filteredTickets} 
+                  currentUser={currentUser} 
+                  onSelectTicket={handleSelectTicket} 
+                  onUpdate={fetchTickets}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
     </div>
+  )
+}
+
+export default function TicketsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex-1 flex items-center justify-center text-white/20 animate-pulse">
+        Carregando Central de Chamados...
+      </div>
+    }>
+      <TicketsPageContent />
+    </Suspense>
   )
 }

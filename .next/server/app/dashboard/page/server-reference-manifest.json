@@ -1,4 +1,35 @@
 {
-  "node": {},
+  "node": {
+    "00f66cae8a9b2939485f7129e63b48abadb7ef7555": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 13633,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "action-browser"
+      },
+      "exportedName": "getNavCounts",
+      "filename": "src/lib/actions/nav.ts"
+    },
+    "00ba23748c4e3e2438e702402d197e44fed8c9dc42": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 13633,
+          "async": false,
+          "exportedName": "getDashboardStats",
+          "filename": "src/lib/actions/dashboard.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "exportedName": "getDashboardStats",
+      "filename": "src/lib/actions/dashboard.ts"
+    }
+  },
   "edge": {}
 }

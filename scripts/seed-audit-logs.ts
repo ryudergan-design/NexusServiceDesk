@@ -1,4 +1,6 @@
-import { PrismaClient } from "../src/generated/client"
+import { PrismaClient } from "@prisma/client"
+
+export {}
 
 const prisma = new PrismaClient()
 
@@ -23,7 +25,7 @@ async function main() {
       data: {
         action,
         entity: "Ticket",
-        entityId: ticket.id,
+        entityId: String(ticket.id),
         userId: user.id,
         createdAt: new Date(Date.now() - i * 1000 * 60 * 60) // Logs em diferentes horas
       }

@@ -127,7 +127,7 @@ export function ProfileClient({ user, activeRole }: ProfileClientProps) {
             {isReadOnly && (
               <div className="pt-4 border-t border-white/5 text-center">
                 <p className="text-[10px] text-white/20 italic uppercase tracking-widest">
-                  Edição desativada para solicitantes.
+                  Edição desativada para clientes.
                 </p>
               </div>
             )}

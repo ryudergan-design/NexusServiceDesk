@@ -6,6 +6,7 @@ import { useState, useEffect } from "react"
 import { Ticket, Users, Clock, CheckCircle2, History, User as UserIcon, Download, AlertCircle, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { useRouter } from "next/navigation"
 
 interface DashboardClientProps {
   statsData: any
@@ -15,6 +16,7 @@ interface DashboardClientProps {
 const COLORS = ['#3b82f6', '#f59e0b', '#10b981', '#8b5cf6', '#ef4444']
 
 export function DashboardClient({ statsData, activeRole }: DashboardClientProps) {
+  const router = useRouter()
   const [auditLogs, setAuditLogs] = useState<any[]>([])
   const [loadingLogs, setLoadingLogs] = useState(true)
   const [isExporting, setIsExporting] = useState(false)
@@ -53,15 +55,15 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
   }, [isStaffMode])
 
   const stats = isStaffMode ? [
-    { label: "Total de Chamados", value: (statsData?.total ?? 0).toString(), icon: Ticket, color: "text-blue-500" },
-    { label: "Em Atendimento", value: (statsData?.open ?? 0).toString(), icon: Clock, color: "text-amber-500" },
-    { label: "Concluídos", value: (statsData?.closed ?? 0).toString(), icon: CheckCircle2, color: "text-emerald-500" },
-    { label: "Solicitantes Ativos", value: (statsData?.users ?? 0).toString(), icon: Users, color: "text-purple-500" },
+    { label: "Total de Chamados", value: (statsData?.total ?? 0).toString(), icon: Ticket, color: "text-blue-500", href: "/dashboard/tickets" },
+    { label: "Em Atendimento", value: (statsData?.open ?? 0).toString(), icon: Clock, color: "text-amber-500", href: "/dashboard/tickets?view=assigned" },
+    { label: "Concluídos", value: (statsData?.closed ?? 0).toString(), icon: CheckCircle2, color: "text-emerald-500", href: "/dashboard/tickets?view=my_closed" },
+    { label: "Gestão de Usuários", value: (statsData?.users ?? 0).toString(), icon: Users, color: "text-purple-500", href: "/dashboard/admin/users" },
   ] : [
-    { label: "Minhas Solicitações", value: (statsData?.total ?? 0).toString(), icon: Ticket, color: "text-blue-500" },
-    { label: "Aguardando Aprovação", value: (statsData?.awaitingApproval ?? 0).toString(), icon: ShieldCheck, color: "text-purple-500" },
-    { label: "Minha Resposta", value: (statsData?.awaitingResponse ?? 0).toString(), icon: History, color: "text-orange-500" },
-    { label: "Finalizados", value: (statsData?.closed ?? 0).toString(), icon: CheckCircle2, color: "text-emerald-500" },
+    { label: "Minhas Solicitações", value: (statsData?.total ?? 0).toString(), icon: Ticket, color: "text-blue-500", href: "/dashboard/tickets?view=my_open" },
+    { label: "Aguardando Aprovação", value: (statsData?.awaitingApproval ?? 0).toString(), icon: ShieldCheck, color: "text-purple-500", href: "/dashboard/tickets?view=my_approval" },
+    { label: "Minha Resposta", value: (statsData?.awaitingResponse ?? 0).toString(), icon: History, color: "text-orange-500", href: "/dashboard/tickets?view=my_open" },
+    { label: "Finalizados", value: (statsData?.closed ?? 0).toString(), icon: CheckCircle2, color: "text-emerald-500", href: "/dashboard/tickets?view=my_closed" },
   ]
 
   const formatLogAction = (log: any) => {
@@ -102,14 +104,15 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/[0.07] transition-all"
+            onClick={() => stat.href && router.push(stat.href)}
+            className="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 hover:bg-white/[0.07] transition-all cursor-pointer hover:border-primary/30"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{stat.label}</p>
+                <p className="text-sm font-medium text-muted-foreground group-hover:text-white/80 transition-colors">{stat.label}</p>
                 <h3 className="mt-2 text-3xl font-bold text-white">{stat.value}</h3>
               </div>
-              <div className={`rounded-xl bg-white/5 p-3 ${stat.color}`}>
+              <div className={cn("rounded-xl bg-white/5 p-3 transition-transform group-hover:scale-110 duration-500", stat.color)}>
                 <stat.icon className="h-6 w-6" />
               </div>
             </div>

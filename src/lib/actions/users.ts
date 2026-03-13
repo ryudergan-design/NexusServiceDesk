@@ -25,7 +25,11 @@ export async function getUsers() {
       department: true,
       jobTitle: true,
       phone: true,
-      createdAt: true
+      createdAt: true,
+      isAI: true,
+      aiApiKey: true,
+      aiModel: true,
+      aiInstructions: true
     }
   })
 }
@@ -36,7 +40,11 @@ export async function createUser(data: {
   role: string, 
   department?: string, 
   jobTitle?: string,
-  phone?: string
+  phone?: string,
+  isAI?: boolean,
+  aiApiKey?: string,
+  aiModel?: string,
+  aiInstructions?: string
 }) {
   const session = await auth()
   const user = session?.user as any
@@ -68,7 +76,11 @@ export async function updateUser(userId: string, data: {
   department?: string, 
   jobTitle?: string,
   phone?: string,
-  approved?: boolean
+  approved?: boolean,
+  isAI?: boolean,
+  aiApiKey?: string,
+  aiModel?: string,
+  aiInstructions?: string
 }) {
   const session = await auth()
   const user = session?.user as any
@@ -89,7 +101,7 @@ export async function updateUser(userId: string, data: {
       action: "UPDATE",
       entity: "User",
       entityId: userId,
-      userId: session.user.id!,
+      userId: (session.user as any).id!,
       payload: JSON.stringify(data)
     }
   })
@@ -117,11 +129,37 @@ export async function updateProfile(data: { name?: string, phone?: string, depar
   }
 
   const updatedUser = await prisma.user.update({
-    where: { id: session.user.id },
+    where: { id: (session.user as any).id },
     data
   })
 
   revalidatePath("/dashboard/profile")
   revalidatePath("/dashboard")
+  return updatedUser
+}
+
+export async function updateAIPreference(enabled: boolean) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error("Não autorizado")
+  }
+
+  const updatedUser = await prisma.user.update({
+    where: { id: (session.user as any).id },
+    data: { aiEnabled: enabled }
+  })
+
+  // Registrar no log de auditoria para fins de rastreabilidade
+  await prisma.auditLog.create({
+    data: {
+      action: "UPDATE_AI_PREFERENCE",
+      entity: "User",
+      entityId: (session.user as any).id,
+      userId: (session.user as any).id,
+      payload: JSON.stringify({ aiEnabled: enabled })
+    }
+  })
+
+  revalidatePath("/dashboard/profile")
   return updatedUser
 }

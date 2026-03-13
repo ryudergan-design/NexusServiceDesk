@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { motion } from "framer-motion"
 import { 
   Plus, 
@@ -19,11 +18,14 @@ import { Input } from "@/components/ui/input"
 import { SLAProgress } from "@/components/dashboard/sla-progress"
 import { toast } from "sonner"
 import { useRouter } from "next/navigation"
+import { TicketQuickView } from "@/components/dashboard/ticket-quick-view"
 
 export default function UnassignedTicketsPage() {
   const [tickets, setTickets] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
   const router = useRouter()
 
   const fetchTickets = async () => {
@@ -39,9 +41,6 @@ export default function UnassignedTicketsPage() {
 
   const handleAssignToMe = async (ticketId: string) => {
     try {
-      // Primeiro buscamos a sessão para pegar o ID do usuário (ou deixamos o backend resolver se não passarmos assigneeId)
-      // No nosso PATCH atual, se não passarmos assigneeId ele mantém o atual. 
-      // Mas podemos atualizar o PATCH para suportar "assignToMe" ou apenas buscar a sessão no client.
       const sessionRes = await fetch("/api/auth/session")
       const session = await sessionRes.json()
       
@@ -64,6 +63,11 @@ export default function UnassignedTicketsPage() {
     }
   }
 
+  const handleSelectTicket = (id: string) => {
+    setSelectedTicketId(id)
+    setIsQuickViewOpen(true)
+  }
+
   const filteredTickets = tickets.filter(t => 
     t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     t.id.toString().includes(searchTerm)
@@ -71,6 +75,13 @@ export default function UnassignedTicketsPage() {
 
   return (
     <div className="space-y-8">
+      <TicketQuickView 
+        ticketId={selectedTicketId} 
+        open={isQuickViewOpen} 
+        onOpenChange={setIsQuickViewOpen}
+        onUpdate={fetchTickets}
+      />
+
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
           <AlertTriangle className="h-8 w-8 text-amber-500" /> Fila de Triagem
@@ -96,7 +107,10 @@ export default function UnassignedTicketsPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {filteredTickets.map((ticket) => (
             <motion.div key={ticket.id} layout>
-              <Card className="border-white/10 bg-black/40 hover:bg-white/[0.02] transition-all group">
+              <Card 
+                className="border-white/10 bg-black/40 hover:bg-white/[0.02] transition-all group cursor-pointer"
+                onClick={() => handleSelectTicket(ticket.id.toString())}
+              >
                 <CardContent className="p-5 space-y-4">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
@@ -117,7 +131,7 @@ export default function UnassignedTicketsPage() {
 
                   <div className="flex items-center justify-between pt-2 border-t border-white/5">
                     <div className="flex flex-col">
-                      <span className="text-[10px] text-white/30 uppercase tracking-tighter">Solicitante</span>
+                      <span className="text-[10px] text-white/30 uppercase tracking-tighter">Cliente</span>
                       <span className="text-xs text-white/70">{ticket.requester.name}</span>
                     </div>
                     <div className="flex gap-2">
@@ -125,15 +139,13 @@ export default function UnassignedTicketsPage() {
                         size="sm" 
                         variant="secondary" 
                         className="h-8 text-[11px] gap-1"
-                        onClick={() => handleAssignToMe(ticket.id)}
+                        onClick={(e) => { e.stopPropagation(); handleAssignToMe(ticket.id) }}
                       >
                         <UserPlus className="h-3 w-3" /> Assumir
                       </Button>
-                      <Link href={`/dashboard/tickets/${ticket.id}`}>
-                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 </CardContent>

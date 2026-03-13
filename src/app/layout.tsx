@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import { Toaster } from "sonner"
+import { CustomCursor } from "@/components/custom-cursor";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,14 +20,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-slate-950 text-white selection:bg-primary/30`}>
         <AuthProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
-            enableSystem
+            enableSystem={false}
             disableTransitionOnChange
           >
+            <CustomCursor />
             {children}
             <Toaster richColors closeButton position="top-right" />
           </ThemeProvider>

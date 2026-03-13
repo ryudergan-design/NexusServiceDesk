@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -35,30 +34,59 @@ model Session {
 }
 
 model User {
-  id               String             @id @default(cuid())
+  id               String               @id @default(cuid())
   name             String?
-  email            String?            @unique
+  email            String?              @unique
   emailVerified    DateTime?
   image            String?
   password         String?
-  role             String             @default("USER")
-  approved         Boolean            @default(false)
+  role             String               @default("USER")
+  approved         Boolean              @default(false)
   department       String?
   phone            String?
   jobTitle         String?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  aiEnabled        Boolean              @default(true)
+  isAI             Boolean              @default(false)
+  aiApiKey         String?
+  aiModel          String?              @default("gemini-1.5-flash")
+  aiInstructions   String?
+  aiLogs           AILog[]
+  accessLogs       AccessLog[]
   accounts         Account[]
   attachments      Attachment[]
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  surveys          SatisfactionSurvey[]
   sessions         Session[]
-  assignedTickets  Ticket[]           @relation("AssignedTickets")
-  requestedTickets Ticket[]           @relation("RequestedTickets")
+  assignedTickets  Ticket[]             @relation("AssignedTickets")
+  requestedTickets Ticket[]             @relation("RequestedTickets")
   comments         TicketComment[]
   transitions      TicketTransition[]
-  auditLogs        AuditLog[]
-  accessLogs       AccessLog[]
-  surveys          SatisfactionSurvey[]
-  notifications    Notification[]
+}
+
+model KnowledgeArticle {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  categoryId String
+  tags       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model AILog {
+  id        String   @id @default(cuid())
+  agentName String
+  ticketId  Int?
+  input     String
+  output    String
+  tokens    Int?
+  latency   Int?
+  userId    String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 model Category {
@@ -87,35 +115,37 @@ model SLARule {
 }
 
 model Ticket {
-  id                Int                @id @default(autoincrement())
+  id                Int                 @id @default(autoincrement())
   title             String
   description       String
-  type              String             @default("INCIDENT")
-  status            String             @default("NEW")
-  priority          String             @default("MEDIUM")
-  impact            String             @default("LOW")
-  urgency           String             @default("LOW")
+  type              String              @default("INCIDENT")
+  status            String              @default("NEW")
+  priority          String              @default("MEDIUM")
+  impact            String              @default("LOW")
+  urgency           String              @default("LOW")
   responseTimeDue   DateTime?
   resolutionTimeDue DateTime?
-  slaPaused         Boolean            @default(false)
+  slaPaused         Boolean             @default(false)
   lastSlaPauseAt    DateTime?
-  totalPausedTime   Int                @default(0)
+  totalPausedTime   Int                 @default(0)
   requesterId       String
   assigneeId        String?
   categoryId        String
   subcategoryId     String?
   budgetAmount      Float?
   budgetDescription String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  plannedDueDate    DateTime?
+  plannedStartDate  DateTime?
   attachments       Attachment[]
-  subcategory       Subcategory?       @relation(fields: [subcategoryId], references: [id])
-  category          Category           @relation(fields: [categoryId], references: [id])
-  assignee          User?              @relation("AssignedTickets", fields: [assigneeId], references: [id])
-  requester         User               @relation("RequestedTickets", fields: [requesterId], references: [id])
+  survey            SatisfactionSurvey?
+  subcategory       Subcategory?        @relation(fields: [subcategoryId], references: [id])
+  category          Category            @relation(fields: [categoryId], references: [id])
+  assignee          User?               @relation("AssignedTickets", fields: [assigneeId], references: [id])
+  requester         User                @relation("RequestedTickets", fields: [requesterId], references: [id])
   comments          TicketComment[]
   transitions       TicketTransition[]
-  survey            SatisfactionSurvey?
 }
 
 model SatisfactionSurvey {
@@ -125,7 +155,6 @@ model SatisfactionSurvey {
   ticketId  Int      @unique
   userId    String
   createdAt DateTime @default(now())
-  
   ticket    Ticket   @relation(fields: [ticketId], references: [id])
   user      User     @relation(fields: [userId], references: [id])
 }
@@ -135,11 +164,10 @@ model Notification {
   userId    String
   title     String
   message   String
-  type      String   // INFO, WARNING, SUCCESS, SURVEY
+  type      String
   read      Boolean  @default(false)
-  link      String?  // Link para o chamado
+  link      String?
   createdAt DateTime @default(now())
-  
   user      User     @relation(fields: [userId], references: [id])
 }
 
@@ -171,8 +199,8 @@ model TicketComment {
 model Attachment {
   id           String   @id @default(cuid())
   filename     String
-  fileUrl      String?  // Opcional agora que temos o conteúdo em Base64
-  content      String   // Conteúdo do arquivo em Base64
+  fileUrl      String?
+  content      String
   mimeType     String
   size         Int
   ticketId     Int
@@ -184,23 +212,23 @@ model Attachment {
 
 model AuditLog {
   id        String   @id @default(cuid())
-  action    String   // CREATE, UPDATE, DELETE
-  entity    String   // Ticket, User, SLARule, etc
+  action    String
+  entity    String
   entityId  String
-  payload   String?  // JSON string com as mudanças
+  payload   String?
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model AccessLog {
   id        String   @id @default(cuid())
-  action    String   // LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT
+  action    String
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id])
   ip        String?
   userAgent String?
   createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
 }
 
 model VerificationToken {
@@ -209,4 +237,50 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model KnowledgeArticle_FTS {
+  articleId Unsupported("")?
+  title     Unsupported("")?
+  content   Unsupported("")?
+  tags      Unsupported("")?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model KnowledgeArticle_FTS_config {
+  k Unsupported("")  @id
+  v Unsupported("")?
+
+  @@ignore
+}
+
+model KnowledgeArticle_FTS_content {
+  id Int              @id @default(autoincrement())
+  c0 Unsupported("")?
+  c1 Unsupported("")?
+  c2 Unsupported("")?
+  c3 Unsupported("")?
+}
+
+model KnowledgeArticle_FTS_data {
+  id    Int    @id @default(autoincrement())
+  block Bytes?
+}
+
+model KnowledgeArticle_FTS_docsize {
+  id Int    @id @default(autoincrement())
+  sz Bytes?
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model KnowledgeArticle_FTS_idx {
+  segid Unsupported("")
+  term  Unsupported("")
+  pgno  Unsupported("")?
+
+  @@id([segid, term])
+  @@ignore
 }

@@ -37,6 +37,13 @@
 - Envio automático de pesquisa NPS após fechamento do chamado.
 - Pesquisa 180: O atendente pode avaliar o comportamento/clareza do solicitante.
 
+### RF08 - Reestruturação Visual (Dual View)
+- O sistema deve oferecer um controle de alternância (toggle) entre **Modo Kanban** e **Modo Desk (Lista)**.
+- O **Modo Kanban** deve exibir os chamados em colunas por status (estilo Trello/Jira).
+- O **Modo Desk** deve exibir os chamados em uma tabela de alta densidade com colunas customizáveis (ID, Título, Categoria, Solicitante, SLA).
+- No **Modo Desk**, ao selecionar um chamado, os detalhes devem ser exibidos em um painel lateral (Drawer) ou divisão de tela (Split View) para manter o contexto da lista.
+- A preferência de visualização do usuário (Kanban ou Desk) deve ser persistida localmente ou no perfil.
+
 ## Requisitos Não Funcionais (RNF)
 
 ### RNF01 - Performance e Disponibilidade

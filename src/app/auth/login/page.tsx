@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { motion } from "framer-motion"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ShieldCheck } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail, AlertCircle, User, ShieldCheck, Bot } from "lucide-react"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
-export default function LoginPage() {
+function LoginFormContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -96,8 +96,11 @@ export default function LoginPage() {
         className="relative w-full max-w-md"
       >
         <div className="relative rounded-3xl border border-white/10 bg-black/40 p-8 shadow-2xl backdrop-blur-2xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-black tracking-tighter text-white">I9 <span className="text-primary">CHAMADOS</span></h1>
+          <div className="mb-8 text-center flex flex-col items-center">
+            <div className="h-16 w-16 bg-primary rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.4)] mb-4">
+              <Bot className="h-10 w-10 text-white animate-pulse" />
+            </div>
+            <h1 className="text-4xl font-black tracking-tighter text-white">NEXUS <span className="text-primary">SERVICEDESK</span></h1>
             <p className="mt-3 text-sm text-white/40 uppercase tracking-widest font-medium">Acesse seu painel</p>
           </div>
 
@@ -113,7 +116,7 @@ export default function LoginPage() {
                   : "text-white/40 hover:text-white/60"
               )}
             >
-              <User className="h-3.5 w-3.5" /> Solicitante
+              <User className="h-3.5 w-3.5" /> Cliente
             </button>
             <button
               type="button"
@@ -210,5 +213,17 @@ export default function LoginPage() {
         </div>
       </motion.div>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    }>
+      <LoginFormContent />
+    </Suspense>
   )
 }

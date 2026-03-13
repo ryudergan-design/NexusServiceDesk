@@ -3,6 +3,7 @@ import { auth } from "@/auth"
 import { ProfileClient } from "./profile-client"
 import { UserCircle } from "lucide-react"
 import { redirect } from "next/navigation"
+import { AIToggle } from "@/components/settings/AIToggle"
 
 export default async function ProfilePage() {
   const session = await auth()
@@ -27,7 +28,14 @@ export default async function ProfilePage() {
         <p className="mt-2 text-muted-foreground">Visualização de suas informações pessoais e de contato.</p>
       </div>
 
-      <ProfileClient user={user} activeRole={(session.user as any).activeRole} />
+      <div className="grid gap-8 lg:grid-cols-12 items-start">
+        <div className="lg:col-span-8">
+          <ProfileClient user={user} activeRole={(session.user as any).activeRole} />
+        </div>
+        <div className="lg:col-span-4">
+          <AIToggle initialEnabled={user.aiEnabled} />
+        </div>
+      </div>
     </div>
   )
 }

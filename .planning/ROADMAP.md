@@ -32,24 +32,44 @@
 - [x] Dashboard do Gestor com gráficos (Recharts: Volume por categoria, Status SLA).
 - [x] Sistema de Notificações In-app e por E-mail (Resumo de ações).
 
-## Fase 4: Autoatendimento e Satisfação (V1.0)
-**Objetivo:** Reduzir carga operacional e coletar feedback.
+## Fase 3.1: Refinamentos Operacionais (Polimento do MVP)
+**Objetivo:** Ajustar fluxos fora do escopo inicial para o lançamento da Versão 1.0.0.
 
-- [ ] Base de Conhecimento: CRUD de artigos e portal de busca. (Persistido em SQLite)
-- [ ] Portal do Solicitante: Visão simplificada de chamados e histórico.
-- [ ] Pesquisa de Satisfação NPS (Pós-fechamento). (Persistido em SQLite)
-- [ ] Pesquisa 180 (Avaliação do Solicitante pelo Atendente). (Persistido em SQLite)
-- [ ] **Integração de Auditoria:** Garantir que todas as ações administrativas e de segurança sejam registradas na tabela `AuditLog` e `AccessLog`.
+- [x] Numeração Sequencial de Chamados (migração de cuid para Int).
+- [x] Fluxo de Encaminhamento de Chamados entre atendentes.
+- [x] Obrigatoriedade de Triagem antes de Aprovação/Resolução.
+- [x] Redirecionamento automático para a Pesquisa de Satisfação via Notificações.
+- [x] Correções de estabilidade no Dashboard (`toString()` de undefined).
+- [x] Atualização de Seed de Usuários (Configuração de senhas e perfis padrão).
 
-## Diretrizes SQL Transversais
-- **SQLite como única fonte de verdade:** Todos os dados, desde configurações de UI até logs de acesso, devem ser persistidos no banco local.
-- **Gestão de Imagens:** Nenhuma imagem deve existir sem um link correspondente na tabela `Attachment`.
-- **Registro de Tudo:** Cada execução crítica (login, erro, mudança de regra) deve gerar uma linha em tabela organizada de log.
+## Fase 4: Reestruturação Visual e Triagem Rápida (Softdesk Layout)
+**Objetivo:** Consolidar a experiência de uso profissional com o Modo Desk e alternância Kanban.
 
-## Fase 5: Refinamento e Performance (Polimento Final)
-**Objetivo:** Garantir uma UX excepcional e alta performance.
+- [x] Implementação da lógica de alternância (Toggle) Kanban vs. Desk.
+- [x] Criação do componente `DeskView` (Tabela de alta densidade).
+- [x] Implementação do `QuickView` (Painel lateral/Split View para detalhes).
+- [x] Refatoração da Barra Lateral para Filtros Rápidos dinâmicos.
+- [x] Persistência de preferência de visualização por usuário.
+
+## Fase 5: IA Agentica e RAG (V1.1 - Automação Inteligente)
+**Objetivo:** Automatizar a triagem, coleta de dados e auxiliar na resolução usando Agentes de IA e RAG no SQLite.
+
+**Plans:** 4 planos
+- [ ] 05-01-PLAN.md — Infraestrutura de IA, FTS5 e Contratos Zod.
+- [ ] 05-02-PLAN.md — Implementação dos Agentes de Triagem, Coleta e Engine de RAG.
+- [ ] 05-03-PLAN.md — Agentes Solucionador, Curadoria e Backend de Sentimento NPS.
+- [ ] 05-04-PLAN.md — Componentes de UI (Insight Card, Magic Compose, Chat) e Dashboard NPS.
+
+## Fase 6: Polimento Final e Deploy (Produção)
+**Objetivo:** Garantir uma UX excepcional, alta performance e preparação para o ambiente de produção.
 
 - [ ] Polimento de UI: Animações complexas (Framer Motion), transições e micro-interações.
 - [ ] Otimização de Performance (Core Web Vitals) e SEO básico.
+- [ ] Auditoria Final de Segurança, Tratamento de Erros e Persistência (SQLite).
 - [ ] Landing Page institucional do I9 Chamados.
-- [ ] Preparação para Deploy de Produção e Auditoria Final.
+- [ ] Deploy em produção (Vercel ou Self-Hosted via Docker).
+
+## Princípios Arquiteturais (Core)
+- **SQLite como única fonte de verdade:** Todos os dados, desde configurações de UI até logs de acesso, devem ser persistidos no banco local.
+- **Gestão de Imagens:** Nenhuma imagem deve existir sem um link correspondente na tabela `Attachment`.
+- **Registro de Tudo:** Cada execução crítica (login, erro, mudança de regra) deve gerar uma linha em tabela organizada de log.

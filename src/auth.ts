@@ -52,12 +52,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = (user as any).role;
         token.id = user.id;
         token.activeRole = (user as any).activeRole;
+        token.department = (user as any).department;
       }
+      
+      // Suporte para update() do useSession
+      if (trigger === "update" && session?.activeRole) {
+        token.activeRole = session.activeRole;
+      }
+      
       return token;
     },
     async session({ session, token }) {
@@ -67,6 +74,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.role = token.role as string;
         // @ts-ignore
         session.user.activeRole = token.activeRole as string;
+        // @ts-ignore
+        session.user.department = token.department as string;
       }
       return session;
     },

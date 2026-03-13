@@ -1,5 +1,226 @@
 {
-  "node": {},
+  "node": {
+    "00f66cae8a9b2939485f7129e63b48abadb7ef7555": {
+      "workers": {
+        "app/dashboard/admin/users/page": {
+          "moduleId": 30875,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        },
+        "app/dashboard/page": {
+          "moduleId": 13633,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        },
+        "app/dashboard/profile/page": {
+          "moduleId": 55857,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        },
+        "app/dashboard/tickets/[id]/page": {
+          "moduleId": 89124,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        },
+        "app/dashboard/tickets/new/page": {
+          "moduleId": 542,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        },
+        "app/dashboard/tickets/page": {
+          "moduleId": 28653,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        },
+        "app/dashboard/tickets/unassigned/page": {
+          "moduleId": 91956,
+          "async": false,
+          "exportedName": "getNavCounts",
+          "filename": "src/lib/actions/nav.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/users/page": "action-browser",
+        "app/dashboard/page": "action-browser",
+        "app/dashboard/profile/page": "action-browser",
+        "app/dashboard/tickets/[id]/page": "action-browser",
+        "app/dashboard/tickets/new/page": "action-browser",
+        "app/dashboard/tickets/page": "action-browser",
+        "app/dashboard/tickets/unassigned/page": "action-browser"
+      },
+      "filename": "src/lib/actions/nav.ts",
+      "exportedName": "getNavCounts"
+    },
+    "00ba23748c4e3e2438e702402d197e44fed8c9dc42": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 13633,
+          "async": false,
+          "exportedName": "getDashboardStats",
+          "filename": "src/lib/actions/dashboard.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "src/lib/actions/dashboard.ts",
+      "exportedName": "getDashboardStats"
+    },
+    "00837692397ba955e99ab1c1ec7deb40beeb10b1e8": {
+      "workers": {
+        "app/dashboard/admin/users/page": {
+          "moduleId": 30875,
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/lib/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/users/page": "rsc"
+      },
+      "filename": "src/lib/actions/users.ts",
+      "exportedName": "getUsers"
+    },
+    "4040302963063272bf5d41605ed0d84e376819fcc9": {
+      "workers": {
+        "app/dashboard/admin/users/page": {
+          "moduleId": 30875,
+          "async": false,
+          "exportedName": "updateAIPreference",
+          "filename": "src/lib/actions/users.ts"
+        },
+        "app/dashboard/profile/page": {
+          "moduleId": 55857,
+          "async": false,
+          "exportedName": "updateAIPreference",
+          "filename": "src/lib/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/users/page": "rsc",
+        "app/dashboard/profile/page": "action-browser"
+      },
+      "filename": "src/lib/actions/users.ts",
+      "exportedName": "updateAIPreference"
+    },
+    "409c06eefa975415d6cc82cd2ea30a5a343845e602": {
+      "workers": {
+        "app/dashboard/admin/users/page": {
+          "moduleId": 30875,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "src/lib/actions/users.ts"
+        },
+        "app/dashboard/profile/page": {
+          "moduleId": 55857,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "src/lib/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/users/page": "rsc",
+        "app/dashboard/profile/page": "action-browser"
+      },
+      "filename": "src/lib/actions/users.ts",
+      "exportedName": "updateProfile"
+    },
+    "40dab9235ee7c418d888291a46147faad12d8f7a53": {
+      "workers": {
+        "app/dashboard/admin/users/page": {
+          "moduleId": 30875,
+          "async": false,
+          "exportedName": "createUser",
+          "filename": "src/lib/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/users/page": "action-browser"
+      },
+      "filename": "src/lib/actions/users.ts",
+      "exportedName": "createUser"
+    },
+    "60825ec0b253f5cedb0c52dc9a3088869390867e8e": {
+      "workers": {
+        "app/dashboard/admin/users/page": {
+          "moduleId": 30875,
+          "async": false,
+          "exportedName": "updateUserStatus",
+          "filename": "src/lib/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/users/page": "action-browser"
+      },
+      "filename": "src/lib/actions/users.ts",
+      "exportedName": "updateUserStatus"
+    },
+    "60f0f7c16349b548e0dfdffeb509edd3f8a71d7786": {
+      "workers": {
+        "app/dashboard/admin/users/page": {
+          "moduleId": 30875,
+          "async": false,
+          "exportedName": "updateUser",
+          "filename": "src/lib/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/admin/users/page": "action-browser"
+      },
+      "filename": "src/lib/actions/users.ts",
+      "exportedName": "updateUser"
+    },
+    "40e429a235789890474ee0f6ba8ff2398e1982180c": {
+      "workers": {
+        "app/dashboard/tickets/[id]/page": {
+          "moduleId": 89124,
+          "async": false,
+          "exportedName": "getMagicComposeAction",
+          "filename": "src/lib/actions/ai.ts"
+        },
+        "app/dashboard/tickets/page": {
+          "moduleId": 28653,
+          "async": false,
+          "exportedName": "getMagicComposeAction",
+          "filename": "src/lib/actions/ai.ts"
+        },
+        "app/dashboard/tickets/unassigned/page": {
+          "moduleId": 91956,
+          "async": false,
+          "exportedName": "getMagicComposeAction",
+          "filename": "src/lib/actions/ai.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/tickets/[id]/page": "action-browser",
+        "app/dashboard/tickets/page": "action-browser",
+        "app/dashboard/tickets/unassigned/page": "action-browser"
+      },
+      "filename": "src/lib/actions/ai.ts",
+      "exportedName": "getMagicComposeAction"
+    },
+    "40be012101951c6e45683a6aace925ab1948c5faaf": {
+      "workers": {
+        "app/dashboard/tickets/new/page": {
+          "moduleId": 542,
+          "async": false,
+          "exportedName": "checkTicketCompletenessAction",
+          "filename": "src/lib/actions/ai.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/tickets/new/page": "action-browser"
+      },
+      "filename": "src/lib/actions/ai.ts",
+      "exportedName": "checkTicketCompletenessAction"
+    }
+  },
   "edge": {},
   "encryptionKey": "PEKaB9BiFf/0mwi9JxoAas5TUOEB+4QvKnZcJzfRwvw="
 }

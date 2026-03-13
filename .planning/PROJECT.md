@@ -1,5 +1,11 @@
 # Projeto: I9 Chamados
 
+## Metas Atuais (Marco: Reestruturação Visual e Autoatendimento)
+- [ ] **Dual View Workflow:** Implementar alternância entre Modo Kanban (Cards) e Modo Desk (Lista Tabelada).
+- [ ] **Interface de Triagem Rápida:** Otimizar o Modo Desk para alta densidade de informação e ações rápidas.
+- [ ] **Base de Conhecimento:** Criar portal de autoatendimento integrado ao fluxo de abertura de chamados.
+- [ ] **Pesquisas NPS Avançadas:** Implementar feedback estruturado pós-atendimento.
+
 ## Objetivo
 Sistema de help desk moderno inspirado no Softdesk (www.softdesk.com.br), seguindo práticas ITIL e focado em automação, dashboards e experiência do usuário fluida.
 

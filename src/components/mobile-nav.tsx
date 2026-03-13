@@ -22,7 +22,14 @@ export function MobileNav() {
       </SheetTrigger>
       <SheetContent side="left" className="p-0 bg-black border-r border-white/10 w-64">
         <SheetTitle className="sr-only">Menu de Navegação</SheetTitle>
-        <SidebarContent onItemClick={() => setOpen(false)} />
+        <React.Suspense fallback={
+          <div className="p-4 space-y-4">
+            <div className="h-8 w-full bg-white/5 rounded animate-pulse" />
+            <div className="h-8 w-full bg-white/5 rounded animate-pulse" />
+          </div>
+        }>
+          <SidebarContent onItemClick={() => setOpen(false)} />
+        </React.Suspense>
       </SheetContent>
     </Sheet>
   )

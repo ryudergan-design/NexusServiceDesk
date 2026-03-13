@@ -54,7 +54,7 @@ export function SatisfactionSurvey({
         body: JSON.stringify({
           rating,
           feedback,
-          comment: `Avaliação do Solicitante enviada: ${rating} Estrelas.`
+          comment: `Avaliação do Cliente enviada: ${rating} Estrelas.`
         })
       })
 
@@ -80,7 +80,7 @@ export function SatisfactionSurvey({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             status: "TRIAGE",
-            comment: "O solicitante reabriu o chamado por considerar o problema não resolvido."
+            comment: "O cliente reabriu o chamado por considerar o problema não resolvido."
           })
         })
 

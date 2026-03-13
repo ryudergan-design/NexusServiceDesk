@@ -9,8 +9,8 @@ export async function GET() {
   }
 
   try {
-    const userId = session.user.id
-    const user = session.user as any
+    const userId = (session.user as any).id
+    const user = (session.user as any) as any
     const activeRole = user.activeRole || user.role || "USER"
 
     // 1. Buscar notificações reais do banco
@@ -75,12 +75,12 @@ export async function PATCH(req: Request) {
 
     if (id === "all") {
       await prisma.notification.updateMany({
-        where: { userId: session.user.id, read: false },
+        where: { userId: (session.user as any).id, read: false },
         data: { read: true }
       })
     } else {
       await prisma.notification.update({
-        where: { id, userId: session.user.id },
+        where: { id, userId: (session.user as any).id },
         data: { read: true }
       })
     }

@@ -1,22 +1,17 @@
 # Estado do Projeto: I9 Chamados
 
-## Progresso Atual
-- [x] Inicialização do Projeto
-- [x] Pesquisa de Domínio e Benchmarking (CONCLUÍDO)
-- [x] Definição de Requisitos (CONCLUÍDO)
-- [x] Roadmap de Fases (CONCLUÍDO)
-- [x] Planejamento da Fase 1 (CONCLUÍDO)
-- [x] Execução da Fase 1 (CONCLUÍDO)
-- [x] Pivot para SQLite local (sem Supabase) (CONCLUÍDO)
-- [x] Planejamento da Fase 2 (CONCLUÍDO)
-- [x] Execução da Fase 2 (CONCLUÍDO)
-- [x] Planejamento da Fase 3 (CONCLUÍDO)
-- [x] Execução da Fase 3 (CONCLUÍDO)
-- [ ] Planejamento da Fase 4 (PRÓXIMA ETAPA)
+## Marco: Reestruturação Visual e Autoatendimento
+O foco agora é transformar o sistema em uma ferramenta de alta produtividade com visualização dual e autoatendimento integrado.
 
-## Histórico de Decisões
-- **2026-03-12:** Escolha da stack Next.js + Tailwind + Supabase/Prisma para escalabilidade e rapidez.
-- **2026-03-12:** Definição da interface Dark Mode com foco em animações e efeitos modernos.
-- **2026-03-12:** Adoção das melhores práticas ITIL 4 para a estrutura de chamados (Incidentes e Requisições).
-- **2026-03-12:** Decisão de usar Auth.js v5 com Prisma Adapter para uma gestão de autenticação robusta e flexível.
-- **2026-03-12:** Pivot para SQLite local (sem Supabase) para facilitar o desenvolvimento inicial e setup ágil.
+## Progresso Atual
+- [x] Fundação e Autenticação (Fase 1 e 1.1)
+- [x] Ciclo de Vida do Chamado (Fase 2)
+- [x] SLAs e Dashboards (Fase 3)
+- [x] Lançamento MVP v1.0.0 (Fase 3.1)
+- [x] Reestruturação Visual e Triagem Rápida (Fase 4 - CONCLUÍDO)
+- [x] Planejamento e Execução da Fase 5: Autoatendimento e Satisfação (CONCLUÍDO)
+- [ ] Planejamento e Execução da Fase 6: Polimento Final e Deploy (EM ANDAMENTO)
+
+## Histórico de Decisões do Marco
+- **2026-03-12:** Conclusão da Fase 5 com implementação de IA Agêntica e RAG.
+- **2026-03-12:** Início da Fase 6 focada em Polimento, Performance e Deploy.

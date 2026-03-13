@@ -1,5 +1,9 @@
 1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/d2be314c3ece3fbe.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"buildId":"T2co8Ox6pm_srAZXUWZkt","rsc":["$","$1","c",{"children":[["$","main",null,{"className":"flex min-h-screen flex-col items-center justify-center p-24","children":[["$","h1",null,{"className":"text-4xl font-bold tracking-tight sm:text-6xl text-primary","children":"I9 Chamados"}],["$","p",null,{"className":"mt-6 text-lg leading-8 text-muted-foreground","children":"Sistema de Help Desk Moderno inspirado em ITIL."}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
-4:null
+2:I[47257,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/61cc43b3d7ad2990.js"],"ClientPageRoot"]
+3:I[52683,["/_next/static/chunks/36046291f22fc5ca.js","/_next/static/chunks/40a05c2ad5a0e9da.js","/_next/static/chunks/842e1ad1dfe3c4df.js","/_next/static/chunks/419d78f2b60aac21.js"],"default"]
+6:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/61cc43b3d7ad2990.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+0:{"buildId":"opOTQKIi0ErgS3dgNkQUp","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/842e1ad1dfe3c4df.js","async":true}],["$","script","script-1",{"src":"/_next/static/chunks/419d78f2b60aac21.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+4:{}
+5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null

@@ -10,12 +10,31 @@ interface RichTextRendererProps {
 export function RichTextRenderer({ content, className }: RichTextRendererProps) {
   if (!content) return null;
 
+  // Verifica se o conteúdo parece ser HTML (contém tags)
+  const isHTML = /<[a-z][\s\S]*>/i.test(content);
+
+  // Função simples para converter Markdown básico em HTML seguro para visualização
+  const parseMarkdown = (text: string) => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/~~(.*?)~~/g, '<del>$1</del>')
+      .replace(/\n/g, '<br />');
+  };
+
   return (
     <div className={cn("relative", className)}>
-      <div 
-        className="rich-text-content"
-        dangerouslySetInnerHTML={{ __html: content }}
-      />
+      {isHTML ? (
+        <div 
+          className="rich-text-content"
+          dangerouslySetInnerHTML={{ __html: content }}
+        />
+      ) : (
+        <div 
+          className="rich-text-content whitespace-pre-wrap break-words"
+          dangerouslySetInnerHTML={{ __html: parseMarkdown(content) }}
+        />
+      )}
       <style jsx global>{`
         .rich-text-content {
           font-size: 0.875rem;

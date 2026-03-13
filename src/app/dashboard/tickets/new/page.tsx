@@ -16,7 +16,8 @@ import {
   HelpCircle,
   Settings,
   Bug,
-  Lightbulb
+  Lightbulb,
+  Sparkles
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -31,6 +32,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { CollectionChat } from "@/components/ai/CollectionChat"
+import { MagicCompose } from "@/components/ai/MagicCompose"
+import { TechPowerOverlay } from "@/components/ui/tech-power-overlay"
+import { useSession } from "next-auth/react"
+import { useRef } from "react"
 
 const ticketSchema = z.object({
   title: z.string().min(5, "O título deve ter pelo menos 5 caracteres"),
@@ -44,12 +50,22 @@ const ticketSchema = z.object({
 
 type TicketFormValues = z.infer<typeof ticketSchema>
 
+// ... inside NewTicketPage ...
 export default function NewTicketPage() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [categories, setCategories] = useState<any[]>([])
   const [selectedCategory, setSelectedCategory] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [attachments, setAttachments] = useState<File[]>([])
+  const [showAICollection, setShowAICollection] = useState(false)
+  const [pendingData, setPendingData] = useState<TicketFormValues | null>(null)
+  const [isPowerActive, setIsPowerActive] = useState(false)
+  
+  const isSubmitting = useRef(false)
+
+  const user = session?.user as any
+  const aiEnabled = user?.aiEnabled ?? true
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<TicketFormValues>({
     resolver: zodResolver(ticketSchema),
@@ -84,13 +100,23 @@ export default function NewTicketPage() {
     setAttachments(attachments.filter((_, i) => i !== index))
   }
 
-  const onSubmit = async (data: TicketFormValues) => {
+  const submitTicket = async (data: TicketFormValues, additionalInfo?: string) => {
+    if (isSubmitting.current) return
+    isSubmitting.current = true
     setIsLoading(true)
+    
     try {
       const formData = new FormData()
       Object.entries(data).forEach(([key, value]) => {
         if (value) formData.append(key, value)
       })
+
+      if (additionalInfo) {
+        // Concatenar informações adicionais da IA na descrição
+        const currentDesc = data.description
+        formData.set("description", `${currentDesc}\n\n--- INFORMAÇÕES ADICIONAIS (COLETA IA) ---\n${additionalInfo}`)
+      }
+
       attachments.forEach(file => {
         formData.append("attachments", file)
       })
@@ -102,11 +128,38 @@ export default function NewTicketPage() {
 
       if (response.ok) {
         router.push("/dashboard/tickets")
+      } else {
+        isSubmitting.current = false
+        setIsLoading(false)
       }
     } catch (error) {
       console.error(error)
-    } finally {
+      isSubmitting.current = false
       setIsLoading(false)
+    } finally {
+      // Don't reset isSubmitting here to prevent double clicks during navigation
+      setShowAICollection(false)
+    }
+  }
+
+  const onSubmit = async (data: TicketFormValues) => {
+    if (aiEnabled) {
+      setPendingData(data)
+      setShowAICollection(true)
+    } else {
+      await submitTicket(data)
+    }
+  }
+
+  const handleAIComplete = async (additionalInfo: string) => {
+    if (pendingData) {
+      await submitTicket(pendingData, additionalInfo)
+    }
+  }
+
+  const handleAISkip = async () => {
+    if (pendingData) {
+      await submitTicket(pendingData)
     }
   }
 
@@ -137,8 +190,12 @@ export default function NewTicketPage() {
                     <SelectItem value="INCIDENT">Incidente (Algo quebrou)</SelectItem>
                     <SelectItem value="REQUEST">Requisição (Novo pedido)</SelectItem>
                     <SelectItem value="BUG">Bug (Erro no sistema)</SelectItem>
-                    <SelectItem value="SUGGESTION">Sugestão de Melhoria</SelectItem>
-                    <SelectItem value="QUESTION">Dúvida / Ajuda</SelectItem>
+                    <SelectItem value="SUGGESTION">Sugestão / Melhoria</SelectItem>
+                    <SelectItem value="QUESTION">Dúvida / Ajuda Técnica</SelectItem>
+                    <SelectItem value="ACCESS">Acesso / Permissões</SelectItem>
+                    <SelectItem value="PROJECT">Projeto / Implantação</SelectItem>
+                    <SelectItem value="FINANCIAL">Financeiro / Cobrança</SelectItem>
+                    <SelectItem value="MAINTENANCE">Manutenção Preventiva</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -170,12 +227,28 @@ export default function NewTicketPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Descrição Detalhada</Label>
-              <RichTextEditor 
-                value={watch("description") || ""} 
-                onChange={(v) => setValue("description", v, { shouldValidate: true })}
-                placeholder="Descreva o passo a passo para reproduzir o problema..." 
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Descrição Detalhada</Label>
+                <MagicCompose 
+                  text={watch("title") || ""}
+                  contextType="NEW_TICKET"
+                  category={categories.find(c => c.id === watch("categoryId"))?.name}
+                  type={watch("type")}
+                  impact={watch("impact")}
+                  urgency={watch("urgency")}
+                  onStart={() => setIsPowerActive(true)}
+                  onEnd={() => setIsPowerActive(false)}
+                  onCompose={(v) => setValue("description", v)}
+                />
+              </div>
+              <div className="relative rounded-lg overflow-hidden">
+                <TechPowerOverlay active={isPowerActive} />
+                <RichTextEditor 
+                  value={watch("description") || ""} 
+                  onChange={(v) => setValue("description", v, { shouldValidate: true })}
+                  placeholder="Descreva o passo a passo para reproduzir o problema..." 
+                />
+              </div>
               {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
             </div>
           </CardContent>
@@ -188,30 +261,30 @@ export default function NewTicketPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Impacto (Severidade)</Label>
+                <Label>Impacto</Label>
                 <Select onValueChange={(v) => setValue("impact", v)} defaultValue="LOW">
                   <SelectTrigger className="bg-white/5 border-white/10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="LOW">Baixo (Cosmético/Individual)</SelectItem>
-                    <SelectItem value="MEDIUM">Médio (Funcionalidade Parcial)</SelectItem>
-                    <SelectItem value="HIGH">Alto (Funcionalidade Crítica)</SelectItem>
-                    <SelectItem value="CRITICAL">Crítico (Sistema Fora / Bloqueante)</SelectItem>
+                    <SelectItem value="LOW">Baixo</SelectItem>
+                    <SelectItem value="MEDIUM">Médio</SelectItem>
+                    <SelectItem value="HIGH">Alto</SelectItem>
+                    <SelectItem value="CRITICAL">Crítico</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Urgência (Prazo)</Label>
+                <Label>Urgência</Label>
                 <Select onValueChange={(v) => setValue("urgency", v)} defaultValue="LOW">
                   <SelectTrigger className="bg-white/5 border-white/10">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="LOW">Baixa (Pode esperar)</SelectItem>
-                    <SelectItem value="MEDIUM">Média (Atrasa o trabalho)</SelectItem>
-                    <SelectItem value="HIGH">Alta (Impedindo o trabalho)</SelectItem>
-                    <SelectItem value="CRITICAL">Imediata (Parada Total)</SelectItem>
+                    <SelectItem value="LOW">Baixa</SelectItem>
+                    <SelectItem value="MEDIUM">Média</SelectItem>
+                    <SelectItem value="HIGH">Alta</SelectItem>
+                    <SelectItem value="CRITICAL">Crítica</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -255,6 +328,20 @@ export default function NewTicketPage() {
           </Button>
         </div>
       </form>
+
+      {showAICollection && pendingData && (
+        <CollectionChat
+          isOpen={showAICollection}
+          onClose={() => setShowAICollection(false)}
+          onComplete={handleAIComplete}
+          onSkip={handleAISkip}
+          ticketData={{
+            title: pendingData.title,
+            description: pendingData.description,
+            categoryId: pendingData.categoryId
+          }}
+        />
+      )}
     </div>
   )
 }

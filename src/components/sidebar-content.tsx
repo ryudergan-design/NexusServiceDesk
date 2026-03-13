@@ -28,6 +28,9 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
   const { data: session } = useSession()
   const [counts, setCounts] = useState<any>(null)
   const [showTicketsMenu, setShowTicketsMenu] = useState(true)
+  const [showAgents, setShowAgents] = useState(false)
+  const [agents, setAgents] = useState<any[]>([])
+  const [viewMode, setViewMode] = useState<string>("kanban")
 
   const user = session?.user as any
   const isAdmin = user?.role === "ADMIN"
@@ -36,10 +39,37 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
   useEffect(() => {
     getNavCounts().then(setCounts)
+    
+    if (isStaffMode) {
+      fetch("/api/users/staff")
+        .then(res => res.json())
+        .then(data => setAgents(Array.isArray(data) ? data : []))
+    }
+    
+    // Sincronizar viewMode com localStorage
+    const updateViewMode = () => {
+      const mode = localStorage.getItem("i9-tickets-view-mode") || "kanban"
+      setViewMode(mode)
+    }
+
+    updateViewMode()
+    window.addEventListener("storage", updateViewMode)
+    // Pequeno hack para detectar mudança no mesmo tab
+    const interval = setInterval(updateViewMode, 1000)
+
+    return () => {
+      window.removeEventListener("storage", updateViewMode)
+      clearInterval(interval)
+    }
   }, [pathname, view, activeRole])
 
-  const handleSignOut = () => {
-    signOut({ callbackUrl: "/auth/login" })
+  const showFilters = viewMode === "desk" && pathname.includes("/tickets")
+
+  const handleSignOut = async () => {
+    await signOut({ 
+      redirect: true,
+      callbackUrl: "/auth/login" 
+    })
   }
 
   return (
@@ -49,7 +79,7 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
           <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.5)]">
             <Ticket className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">I9 Chamados</span>
+          <span className="text-xl font-bold tracking-tight text-white">Nexus ServiceDesk</span>
         </Link>
       </div>
 
@@ -69,8 +99,63 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
           Dashboard
         </Link>
 
-        {/* Menu de Chamados (Equipe Técnica) */}
+        {/* Chamados (Sempre Visível) */}
+        <Link
+          href="/dashboard/tickets"
+          onClick={onItemClick}
+          className={cn(
+            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+            pathname === "/dashboard/tickets" && !view && !searchParams.get("agentId")
+              ? "bg-primary/10 text-primary shadow-[inset_0_0_10px_rgba(59,130,246,0.1)]" 
+              : "text-white/60 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          <Ticket className="h-5 w-5" />
+          Chamados
+        </Link>
+
+        {/* Outros Atendentes (Staff only) */}
         {isStaffMode && (
+          <div className="pt-2">
+            <button 
+              onClick={() => setShowAgents(!showAgents)}
+              className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/30 hover:text-white/50 transition-colors"
+            >
+              Outros Atendentes
+              <ChevronDown className={cn("h-3 w-3 transition-transform", !showAgents && "-rotate-90")} />
+            </button>
+            
+            {showAgents && (
+              <div className="mt-1 space-y-1">
+                {agents
+                  .filter((a: any) => a.id !== user?.id)
+                  .map((agent: any) => (
+                    <Link
+                      key={agent.id}
+                      href={`/dashboard/tickets?agentId=${agent.id}`}
+                      onClick={onItemClick}
+                      className={cn(
+                        "group flex items-center justify-between rounded-lg px-3 py-2 text-[12px] font-medium transition-all",
+                        searchParams.get("agentId") === agent.id
+                          ? "bg-primary/10 text-primary" 
+                          : "text-white/60 hover:bg-white/5 hover:text-white"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-6 w-6 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-primary/30 transition-colors">
+                          <UserCircle className="h-3.5 w-3.5" />
+                        </div>
+                        <span className="truncate max-w-[140px]">{agent.name}</span>
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Menu de Chamados (Equipe Técnica) - Só aparece no modo Desk */}
+        {isStaffMode && showFilters && (
           <div className="pt-4 pb-2">
             <button 
               onClick={() => setShowTicketsMenu(!showTicketsMenu)}
@@ -136,7 +221,7 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                 >
                   <div className="flex items-center gap-3">
                     <History className="h-4 w-4" />
-                    Aguardando Solicitante
+                    Aguardando Cliente
                   </div>
                   {counts?.awaitingUser > 0 && (
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(249,115,22,0.4)]">
@@ -157,7 +242,7 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                 >
                   <div className="flex items-center gap-3">
                     <ShieldCheck className="h-4 w-4" />
-                    Aguardando Aprovação
+                    Orçamento / Aprovação
                   </div>
                   {counts?.awaitingApproval > 0 && (
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[10px] font-bold text-white shadow-[0_0_10px_rgba(168,85,247,0.4)]">
@@ -184,88 +269,68 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
           </div>
         )}
 
-        {/* Menu Minhas Solicitações (Para Clientes) */}
-        <div className="pt-4 pb-2">
-          <span className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/30">
-            Minhas Solicitações
-          </span>
-          <div className="mt-1 space-y-1">
-            <Link
-              href="/dashboard/tickets?view=my_open"
-              onClick={onItemClick}
-              className={cn(
-                "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                view === "my_open" 
-                  ? "bg-primary/10 text-primary" 
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <Ticket className="h-4 w-4" />
-                Em Aberto
-              </div>
-              {counts?.myTickets > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white shadow-[0_0_10px_rgba(59,130,246,0.4)]">
-                  {counts.myTickets}
-                </span>
-              )}
-            </Link>
+        {/* Menu Minhas Solicitações (Para Clientes) - Só aparece no modo Desk */}
+        {!isStaffMode && showFilters && (
+          <div className="pt-4 pb-2">
+            <span className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/30">
+              Minhas Solicitações
+            </span>
+            <div className="mt-1 space-y-1">
+              <Link
+                href="/dashboard/tickets?view=my_open"
+                onClick={onItemClick}
+                className={cn(
+                  "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                  view === "my_open" 
+                    ? "bg-primary/10 text-primary" 
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <Ticket className="h-4 w-4" />
+                  Em Aberto
+                </div>
+                {counts?.myTickets > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white shadow-[0_0_10px_rgba(59,130,246,0.4)]">
+                    {counts.myTickets}
+                  </span>
+                )}
+              </Link>
 
-            <Link
-              href="/dashboard/tickets?view=my_approval"
-              onClick={onItemClick}
-              className={cn(
-                "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                view === "my_approval" 
-                  ? "bg-purple-500/10 text-purple-400" 
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <ShieldCheck className="h-4 w-4" />
-                Aguardando Aprovação
-              </div>
-              {counts?.myAwaitingApproval > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[10px] font-bold text-white">
-                  {counts.myAwaitingApproval}
-                </span>
-              )}
-            </Link>
+              <Link
+                href="/dashboard/tickets?view=my_approval"
+                onClick={onItemClick}
+                className={cn(
+                  "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                  view === "my_approval" 
+                    ? "bg-purple-500/10 text-purple-400" 
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="h-4 w-4" />
+                  Aguardando Aprovação
+                </div>
+                {counts?.myAwaitingApproval > 0 && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-purple-500 text-[10px] font-bold text-white">
+                    {counts.myAwaitingApproval}
+                  </span>
+                )}
+              </Link>
 
-            <Link
-              href="/dashboard/tickets?view=my_pending"
-              onClick={onItemClick}
-              className={cn(
-                "group flex items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                view === "my_pending" 
-                  ? "bg-orange-500/10 text-orange-400" 
-                  : "text-white/60 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <div className="flex items-center gap-3">
-                <History className="h-4 w-4" />
-                Minha Resposta
-              </div>
-              {counts?.myAwaitingResponse > 0 && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
-                  {counts.myAwaitingResponse}
-                </span>
-              )}
-            </Link>
-
-            <Link
-              href="/dashboard/tickets?view=my_closed"
-              onClick={onItemClick}
-              className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-                view === "my_closed" ? "bg-primary/10 text-primary" : "text-white/60 hover:bg-white/5 hover:text-white"
-              )}
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              Histórico / Encerrados
-            </Link>
+              <Link
+                href="/dashboard/tickets?view=my_closed"
+                onClick={onItemClick}
+                className={cn(
+                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all",
+                  view === "my_closed" ? "bg-primary/10 text-primary" : "text-white/60 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Histórico / Encerrados
+              </Link>            </div>
           </div>
-        </div>
+        )}
 
         {/* Configurações / Admin */}
         <div className="pt-4 pb-2">
@@ -301,16 +366,6 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
           </div>
         </div>
       </nav>
-
-      <div className="border-t border-white/10 p-4">
-        <button 
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-white/60 transition-all hover:bg-destructive/10 hover:text-destructive"
-        >
-          <LogOut className="h-5 w-5" />
-          Sair
-        </button>
-      </div>
     </div>
   )
 }
