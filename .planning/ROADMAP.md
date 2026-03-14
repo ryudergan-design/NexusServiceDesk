@@ -65,6 +65,9 @@
 
 - [ ] Polimento de UI: Animações complexas (Framer Motion), transições e micro-interações.
 - [ ] Otimização de Performance (Core Web Vitals) e SEO básico.
+  - [ ] Otimizar fontes via `next/font/google` com `display: swap`.
+  - [ ] Implementar `next/image` para melhor compressão e carregamento preguiçoso.
+  - [ ] Configurar `next.config.mjs` com compressão e headers de segurança.
 - [ ] Auditoria Final de Segurança, Tratamento de Erros e Persistência (SQLite).
 - [ ] Landing Page institucional do I9 Chamados.
 - [ ] Deploy em produção (Vercel ou Self-Hosted via Docker).

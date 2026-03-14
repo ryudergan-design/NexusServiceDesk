@@ -11,6 +11,7 @@ O foco agora é transformar o sistema em uma ferramenta de alta produtividade co
 - [x] Reestruturação Visual e Triagem Rápida (Fase 4 - CONCLUÍDO)
 - [x] Planejamento e Execução da Fase 5: Autoatendimento e Satisfação (CONCLUÍDO)
 - [ ] Planejamento e Execução da Fase 6: Polimento Final e Deploy (EM ANDAMENTO)
+  - [x] Detalhamento das tarefas de performance e otimização no ROADMAP.md.
 
 ## Histórico de Decisões do Marco
 - **2026-03-12:** Conclusão da Fase 5 com implementação de IA Agêntica e RAG.
