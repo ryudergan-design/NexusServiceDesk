@@ -1,84 +1,119 @@
-# Padrões de Teste
+# Mapa de Testes
 
-**Data da Análise:** 2026-03-12
+**Data da analise:** 2026-03-14
 
-## Framework de Teste
+## Stack atual
 
-**Runner Sugerido:**
-- **Vitest** (Velocidade e compatibilidade com Next.js/Vite)
-- Config: `vitest.config.ts`
+- Runner: `Vitest`
+- Ambiente: `jsdom`
+- Setup global: `tests/setup.ts`
+- Bibliotecas auxiliares:
+  - `@testing-library/react`
+  - `@testing-library/jest-dom`
+  - `@testing-library/user-event`
+  - `@vitejs/plugin-react`
 
-**Biblioteca de Asserção:**
-- `expect` (incluído no Vitest)
-- `@testing-library/react` (para testes de componentes)
+## Configuracao observada
 
-**Comandos Recomendados:**
-```bash
-npm test               # Executar todos os testes
-npm run test:watch     # Modo watch
-npm run test:coverage  # Cobertura
-```
+Arquivo central: `vitest.config.ts`
 
-## Organização de Arquivos de Teste
+- `environment: 'jsdom'`
+- `globals: true`
+- `setupFiles: ['./tests/setup.ts']`
+- alias `@` apontando para `src`
 
-**Localização:**
-- Testes Unitários: Co-localizados com o código ou em subdiretórios `__tests__`.
-- Exemplo: `src/lib/utils.test.ts` ao lado de `src/lib/utils.ts`.
+Isso deixa a base pronta para testes unitarios, testes de componente e mocks de modulos internos.
 
-**Nomenclatura:**
-- `*.test.ts` para lógica pura.
-- `*.test.tsx` para componentes React.
+## Organizacao dos testes
 
-## Estrutura de Teste
+- Os testes atuais ficam em `tests/unit/`.
+- Subconjunto de IA em `tests/unit/ai/`.
+- Nao foram encontrados testes co-localizados em `src/**`.
 
-**Organização da Suite:**
-```typescript
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { Header } from './Header';
+## Suites atuais mapeadas
 
-describe('Header Component', () => {
-  it('should render the title correctly', () => {
-    render(<Header />);
-    expect(screen.getByText(/I9 Chamados/i)).toBeDefined();
-  });
-});
-```
+### Dominio e regras gerais
 
-## Mocking
+- `tests/unit/tickets.test.ts`
+- `tests/unit/sla.test.ts`
+- `tests/unit/auth.test.ts`
 
-**Framework:** `vitest` (vi.mock).
+### IA
 
-**Padrões:**
-- Mock de chamadas ao banco de dados (Prisma) usando `vitest-mock-extended`.
-- Mock de Next.js `navigation` e `auth`.
+- `tests/unit/ai/collection.test.ts`
+- `tests/unit/ai/curation.test.ts`
+- `tests/unit/ai/gemini-escalation.test.ts`
+- `tests/unit/ai/rag.test.ts`
+- `tests/unit/ai/sentiment.test.ts`
+- `tests/unit/ai/solver.test.ts`
+- `tests/unit/ai/triage.test.ts`
 
-**O que Mockar:**
-- Chamadas externas (APIs, SDKs).
-- Camada de banco de dados em testes unitários.
+## Padroes de mocking
 
-**O que NÃO Mockar:**
-- Lógica de negócio pura em utilitários.
-- Componentes puros em testes de integração de UI.
+- `vi.mock(...)` e o mecanismo principal.
+- Prisma e mockado em suites de auth e IA.
+- SDK de IA tambem e mockado para evitar chamadas reais.
+- O foco atual e validar transformacao de entrada e saida sem tocar em servicos externos.
 
-## Tipos de Teste
+## Cobertura funcional percebida
 
-**Testes Unitários:**
-- Foco em funções auxiliares (`lib/utils.ts`, `lib/sla.ts`).
-- Validação de regras de negócio isoladas.
+Hoje a cobertura visivel se concentra em:
 
-**Testes de Integração:**
-- Validação de Server Actions com banco de dados de teste (SQLite in-memory ou dev.db separado).
-- Fluxos de autenticação.
+- regras de prioridade e chamados
+- calculos de SLA
+- partes do fluxo de autenticacao
+- agentes de IA e RAG
 
-**Testes E2E:**
-- Recomendação: **Playwright**.
-- Fluxos críticos: Login, Abertura de Chamado, Atribuição de Técnico.
+## Lacunas importantes
 
-## Cobertura
+- Nao foram encontrados testes para rotas em `src/app/api/**/route.ts`.
+- Nao foram encontrados testes para server actions em `src/lib/actions/*.ts`.
+- Nao foram encontrados testes de componentes importantes do dashboard, como:
+  - `src/components/dashboard/desk-view.tsx`
+  - `src/components/dashboard/ticket-detail-view.tsx`
+  - `src/components/dashboard/manager-dashboard.tsx`
+- Nao ha evidencia de testes end-to-end.
+- Nao ha configuracao de cobertura em `vitest.config.ts`.
+- `package.json` nao tem scripts `test`, `test:watch` ou `test:coverage`.
 
-**Alvo:** 70% de cobertura de código para lógica crítica de SLA e Chamados.
+## Qualidade percebida das suites atuais
 
----
+- Os testes sao legiveis e pequenos.
+- A estrategia de mocks esta consolidada.
+- A cobertura mais forte esta na camada de regra isolada, nao no fluxo web completo.
+- Alguns testes validam versoes simplificadas da regra, em vez de importar a implementacao real usada na aplicacao.
 
-*Análise de testes: 2026-03-12*
+## Prioridades recomendadas
+
+### Rotas criticas
+
+- `src/app/api/tickets/route.ts`
+- `src/app/api/tickets/[id]/route.ts`
+- `src/app/api/tickets/[id]/comments/route.ts`
+- `src/app/api/auth/register/route.ts`
+
+### Actions centrais
+
+- `src/lib/actions/dashboard.ts`
+- `src/lib/actions/users.ts`
+- `src/lib/actions/ai.ts`
+
+### UI principal
+
+- abertura de chamado
+- fila de tickets
+- visualizacao de detalhe
+- dashboards por papel
+
+## O que o projeto ja tem pronto para evoluir
+
+- alias `@` funcionando em testes
+- setup global simples e funcional
+- stack suficiente para testes de componente
+- mocks ja usados em varias suites
+
+## Resumo operacional
+
+- A base de testes existe e nao esta do zero.
+- O ponto forte atual e a validacao de regras isoladas e IA.
+- O maior gap esta em API, actions, componentes e fluxo real de usuario.

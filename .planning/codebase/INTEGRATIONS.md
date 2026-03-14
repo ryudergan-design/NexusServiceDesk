@@ -1,85 +1,198 @@
-# Integrações Externas
+# Integracoes e Infra de Dados
 
-**Data da Análise:** 2026-03-12
+**Data da analise:** 2026-03-14
 
-## APIs e Serviços Externos
+## Visao geral
 
-**Não Detectados:**
-- No momento, a aplicação parece ser autosuficiente e não consome APIs externas de terceiros (como Stripe, AWS, Twilio) de forma explícita no código explorado.
+As integracoes principais do projeto se concentram em:
 
-## Armazenamento de Dados
+- banco de dados e ORM
+- autenticacao e sessao
+- provedores de IA
+- busca de conhecimento
+- rotas internas e scripts operacionais
 
-**Bancos de Dados:**
-- SQLite (Local):
-  - Conexão: `DATABASE_URL` (tipicamente `file:./dev.db`).
-  - Cliente: Prisma ORM (`@prisma/client`).
-  - Notas de Saúde: O Prisma é instanciado em `src/lib/prisma.ts` como um singleton. A conexão é persistente durante o ciclo de vida do processo Node. No SQLite, a integridade depende do acesso exclusivo ao arquivo `.db`.
+Mesmo quando nao fala com um servico externo, a aplicacao integra varias camadas internas entre `src/app/api/`, `src/lib/actions/`, `src/lib/ai/` e `prisma/`.
 
-**Armazenamento de Arquivos:**
-- Apenas sistema de arquivos local ou embutido (ex: `dev.db`). Não foram encontradas integrações com S3 ou serviços similares para uploads.
+## Banco de dados
 
-**Caching:**
-- Nenhum serviço de cache externo (Redis, Memcached) detectado. O Next.js utiliza o cache nativo de rotas e dados.
+### Prisma + SQLite
 
-## Autenticação e Identidade
+- Schema em `prisma/schema.prisma`.
+- Cliente compartilhado em `src/lib/prisma.ts`.
+- Fonte de dados controlada por `DATABASE_URL`.
+- Provider atual: `sqlite`.
 
-**Provedor de Autenticação:**
-- NextAuth.js (Auth.js v5) com provedor de **Credentials** (Email/Senha).
-- Implementação: Estratégia JWT para sessões. Os usuários são armazenados no banco de dados SQLite local através do `PrismaAdapter`.
+### Modelos principais
 
-## Monitoramento e Observabilidade
+- Auth: `User`, `Account`, `Session`, `VerificationToken`
+- Chamados: `Ticket`, `TicketComment`, `TicketTransition`, `Category`, `Subcategory`, `SLARule`, `Attachment`
+- Suporte operacional: `Notification`, `AuditLog`, `AccessLog`, `AILog`
+- Conhecimento: `KnowledgeArticle` e tabelas FTS
 
-**Rastreamento de Erros:**
-- Nenhum serviço externo (Sentry, LogRocket) configurado.
+### Migracoes e carga inicial
 
-**Logs:**
-- Atualmente, os logs são via console (`console.log`, `console.error`).
-- **Proposta de Melhoria:** Implementar uma tabela `Log` no Prisma para registros persistentes de eventos críticos (Auditoria, Erros de SLA, Acessos).
+- Migracoes em `prisma/migrations/`.
+- Seeds e ajustes em:
+  - `prisma/seed.ts`
+  - `prisma/seed-all-bots.ts`
+  - `prisma/seed-master-bots.ts`
+  - `prisma/seed-openrouter-bot.ts`
+  - `prisma/seed-cohere-bot.ts`
+  - `prisma/sync-available-models.ts`
 
-## CI/CD e Implantação
+### Sinal de evolucao futura
 
-**Hospedagem:**
-- Local ou VPS (presumido devido ao uso de SQLite).
+- Dependencias `@libsql/client` e `@prisma/adapter-libsql` mostram preparacao para evoluir de SQLite local para libSQL/Turso, embora o schema atual ainda esteja em SQLite classico.
 
-## Configuração de Ambiente
+## Autenticacao e sessao
 
-**Vars de ambiente obrigatórias:**
-- `DATABASE_URL`: Caminho para o banco de dados SQLite.
-- `AUTH_SECRET`: Segredo usado para assinar tokens JWT do NextAuth.
+### NextAuth/Auth.js
 
-**Localização de segredos:**
-- Armazenados no arquivo `.env` (não versionado).
+- Configuracao central em `src/auth.ts`.
+- Rota em `src/app/api/auth/[...nextauth]/route.ts`.
+- Adapter Prisma com `PrismaAdapter(prisma)`.
+- Estrategia de sessao: `jwt`.
 
-## Webhooks e Callbacks
+### Fluxos de auth observados
 
-**Entrada:**
-- `/api/auth/[...nextauth]`: Callbacks de autenticação.
+- Login por credenciais com `bcryptjs`.
+- Registro em `src/app/api/auth/register/route.ts`.
+- Troca de papel em `src/app/api/auth/switch-role/route.ts`.
+- Middleware de protecao em `src/middleware.ts`.
 
-**Saída:**
-- Nenhum webhook de saída detectado.
+### Dados de sessao expostos para a aplicacao
 
----
+- `id`
+- `role`
+- `activeRole`
+- `department`
 
-**Saúde da Conexão Prisma:**
-A conexão é considerada saudável se o arquivo de banco de dados estiver acessível e o cliente Prisma estiver gerado corretamente. O uso do caminho customizado `../src/generated/client` em `schema.prisma` exige que o comando `npx prisma generate` tenha sido executado com sucesso.
+## Integracoes de IA
 
-**Plano para Tabela de Logs Globais:**
-1. Adicionar o modelo `SystemLog` em `prisma/schema.prisma`:
-   ```prisma
-   model SystemLog {
-     id        String   @id @default(cuid())
-     level     String   // INFO, WARN, ERROR
-     category  String   // AUTH, TICKETS, SYSTEM
-     message   String
-     metadata  String?
-     userId    String?
-     user      User?    @relation(fields: [userId], references: [id])
-     createdAt DateTime @default(now())
-   }
-   ```
-2. Executar `npx prisma migrate dev --name add_system_logs`.
-3. Criar utilitário em `src/lib/logger.ts` para facilitar a escrita desses logs.
+### SDKs e provedores
 
----
+- Base principal em `src/lib/ai/config.ts`.
+- SDKs:
+  - `ai`
+  - `@ai-sdk/google`
+  - `@ai-sdk/openai`
 
-*Auditoria de integração: 2026-03-12*
+### Provedores detectados no codigo
+
+- Google Gemini
+- Groq
+- OpenRouter
+- Cohere
+
+### Pontos da aplicacao ligados a IA
+
+- Rotas:
+  - `src/app/api/ai/curation/route.ts`
+  - `src/app/api/ai/nps-analysis/route.ts`
+  - `src/app/api/ai-agents/route.ts`
+- Server action:
+  - `src/lib/actions/ai.ts`
+- Agentes:
+  - `src/lib/ai/agents/collection.ts`
+  - `src/lib/ai/agents/triage.ts`
+  - `src/lib/ai/agents/solver.ts`
+  - `src/lib/ai/agents/curation.ts`
+  - `src/lib/ai/agents/nps-sentiment.ts`
+- Servico adicional:
+  - `src/lib/ai/gemini-service.ts`
+
+### Padrao de configuracao observado
+
+- Chave global por ambiente para provedores.
+- Possibilidade de chave por agente em `User.aiApiKey`.
+- Escolha de modelo por usuario/agente em `User.aiModel`.
+- Registro operacional em `AILog`.
+
+## Busca de conhecimento e RAG
+
+- Base de conhecimento em `KnowledgeArticle`.
+- Tabelas FTS no schema Prisma.
+- Script de apoio em `scripts/setup-fts5.ts`.
+- Engine de recuperacao em `src/lib/ai/rag/engine.ts`.
+
+## Superficie de integracao interna
+
+### Rotas principais
+
+- `src/app/api/tickets/route.ts`
+- `src/app/api/tickets/[id]/route.ts`
+- `src/app/api/tickets/[id]/comments/route.ts`
+- `src/app/api/categories/route.ts`
+- `src/app/api/users/staff/route.ts`
+- `src/app/api/stats/route.ts`
+- `src/app/api/notifications/route.ts`
+- `src/app/api/dashboard/export/route.ts`
+- `src/app/api/dashboard/audit/route.ts`
+
+### Server actions principais
+
+- `src/lib/actions/dashboard.ts`
+- `src/lib/actions/nav.ts`
+- `src/lib/actions/users.ts`
+- `src/lib/actions/ai.ts`
+
+## Scripts operacionais
+
+### Seeds e dados de exemplo
+
+- `scripts/seed-100-tickets.ts`
+- `scripts/seed-audit-logs.ts`
+- `scripts/update-categories.ts`
+
+### Diagnostico e manutencao
+
+- `scripts/check-ai-logs.ts`
+- `scripts/check-bots.ts`
+- `scripts/check-tickets.ts`
+- `scripts/test-db-write.ts`
+- `scripts/fix-db-migration.ts`
+- `scripts/cleanup-and-seed.ts`
+- `scripts/list-gemini-models.ts`
+- `scripts/migrate_gemini_to_codex.ps1`
+
+## Variaveis de ambiente por categoria
+
+### Banco
+
+- `DATABASE_URL`
+
+O que faz: define o banco usado pelo Prisma.
+Quando usar: sempre.
+Valor recomendado: caminho SQLite explicito no desenvolvimento local.
+
+### Autenticacao
+
+- `AUTH_SECRET`
+
+O que faz: protege tokens e sessao.
+Quando usar: sempre em ambiente real.
+Valor recomendado: string longa, aleatoria e exclusiva por ambiente.
+
+### IA
+
+- `GOOGLE_GENERATIVE_AI_API_KEY`
+- `GROQ_API_KEY`
+- `OPENROUTER_API_KEY`
+- `COHERE_API_KEY`
+
+O que fazem: autenticam chamadas para cada provedor.
+Quando usar: apenas para os provedores realmente habilitados.
+Valor recomendado: manter os valores fora de logs, docs e commits.
+
+## Cuidados importantes
+
+- `.env` e `.env.local` existem no projeto e nao devem ser copiados para documentacao.
+- O campo `User.aiApiKey` aumenta a superficie sensivel, porque chaves podem ficar salvas no banco.
+- O projeto mistura varios provedores de IA; isso pede controle claro de fallback, custo e logs.
+
+## Resumo operacional
+
+- A integracao mais importante hoje e `Next.js` + `Prisma` + `NextAuth` + provedores de IA.
+- O sistema depende fortemente de configuracao de ambiente para banco, auth e IA.
+- Ha boa base de scripts para operar o ambiente local, mas a disciplina operacional precisa acompanhar esse volume de integracoes.

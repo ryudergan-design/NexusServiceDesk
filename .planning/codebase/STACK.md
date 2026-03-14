@@ -1,78 +1,132 @@
 # Pilha de Tecnologia
 
-**Data da Análise:** 2026-03-12
+**Data da analise:** 2026-03-14
 
-## Linguagens
+## Visao geral
 
-**Principal:**
-- TypeScript 5+ - Utilizado em toda a aplicação (frontend e backend).
+- Aplicacao full-stack em `Next.js` com App Router.
+- Linguagem principal: `TypeScript`.
+- Frontend em `React` com base `shadcn/ui` + `Radix UI`.
+- Backend embutido no proprio app, com rotas em `src/app/api/` e server actions em `src/lib/actions/`.
+- Persistencia via `Prisma` sobre `SQLite`.
+- Camada de IA apoiada por `Vercel AI SDK`, `@ai-sdk/google` e `@ai-sdk/openai`.
 
-## Runtime
+## Linguagem, runtime e gerenciador
 
-**Ambiente:**
-- Node.js (v20+ recomendado)
+- `TypeScript` em `src/`, `tests/`, `prisma/` e `scripts/`.
+- Runtime esperado: `Node.js`.
+- Gerenciador de pacotes: `npm`.
+- Lockfile em `package-lock.json`.
 
-**Gerenciador de Pacotes:**
-- npm (v10+)
-- Lockfile: `package-lock.json` presente.
+## Framework principal
 
-## Frameworks
+- `next` em `package.json`.
+- `react` e `react-dom` em `package.json`.
+- Entrada global em `src/app/layout.tsx`.
+- Landing page em `src/app/page.tsx`.
+- Area autenticada em `src/app/dashboard/`.
 
-**Core:**
-- Next.js 15+ (App Router) - Framework fullstack para React.
+## Banco e acesso a dados
 
-**Banco de Dados & ORM:**
-- Prisma 6+ - ORM para interação com o banco de dados.
-- SQLite - Banco de dados relacional local para desenvolvimento e produção simplificada.
-- LibSQL Adapter - Suporte para SQLite/Turso.
+- `prisma` e `@prisma/client` como base de persistencia.
+- Schema principal em `prisma/schema.prisma`.
+- Cliente compartilhado em `src/lib/prisma.ts`.
+- Banco configurado com `provider = "sqlite"` e `DATABASE_URL`.
+- Dependencias `@libsql/client` e `@prisma/adapter-libsql` instaladas, indicando preparacao para cenarios libSQL/Turso.
 
-**Autenticação:**
-- Auth.js (NextAuth.js v5 beta) - Sistema de autenticação com provedor de credenciais.
+## Autenticacao
 
-**Testes:**
-- Não detectado explicitamente (sem `jest.config.js` ou `vitest.config.ts` na raiz).
+- `next-auth` v5 beta com `@auth/prisma-adapter`.
+- Configuracao central em `src/auth.ts`.
+- Rota auth em `src/app/api/auth/[...nextauth]/route.ts`.
+- Provider detectado: `Credentials`.
+- Criptografia de senha com `bcryptjs`.
 
-**Build/Dev:**
-- Tailwind CSS 4+ - Framework de estilização via PostCSS.
-- Lucide React - Biblioteca de ícones.
+## Validacao e formularios
 
-## Dependências Principais
+- `zod` para contratos e validacao.
+- `react-hook-form` com `@hookform/resolvers`.
+- Formularios com componentes internos em `src/components/ui/`.
 
-**Críticas:**
-- `@prisma/client` - Cliente gerado para acesso ao banco de dados.
-- `next-auth` - Gerenciamento de sessões e autenticação.
-- `zod` - Validação de esquemas e tipos em tempo de execução.
-- `bcryptjs` - Hash de senhas para segurança.
+## UI stack
 
-**UI/UX:**
-- `framer-motion` - Animações e transições.
-- `radix-ui` - Componentes acessíveis (headless).
-- `tiptap` - Editor de texto rico (Rich Text).
-- `recharts` - Visualização de dados e gráficos.
-- `date-fns` - Manipulação de datas e cálculos de SLA.
+- `Tailwind CSS` com configuracao em `postcss.config.js`.
+- `components.json` mostra uso de `shadcn/ui`.
+- Biblioteca base de componentes em `src/components/ui/`.
+- `lucide-react` para icones.
+- `framer-motion` para animacoes.
+- `recharts` para dashboards.
+- `@tiptap/react` e extensoes em `src/components/rich-text-editor.tsx`.
+- `next-themes` para tema.
+- `sonner` para toasts.
 
-## Configuração
+## Camada de IA
 
-**Ambiente:**
-- Configurado via arquivo `.env`.
-- Variáveis críticas esperadas: `DATABASE_URL`, `AUTH_SECRET`.
+- `ai` como SDK principal.
+- `@ai-sdk/google` para Gemini.
+- `@ai-sdk/openai` para provedores compativeis com API OpenAI.
+- Configuracao base em `src/lib/ai/config.ts`.
+- Servico adicional em `src/lib/ai/gemini-service.ts`.
+- Agentes especializados em:
+  - `src/lib/ai/agents/collection.ts`
+  - `src/lib/ai/agents/triage.ts`
+  - `src/lib/ai/agents/solver.ts`
+  - `src/lib/ai/agents/curation.ts`
+  - `src/lib/ai/agents/nps-sentiment.ts`
+- RAG em `src/lib/ai/rag/engine.ts`.
 
-**Build:**
-- `next.config.mjs` (ou similar) - Configuração do Next.js.
-- `tsconfig.json` - Configuração do compilador TypeScript.
-- `postcss.config.js` - Processamento de CSS.
-- `components.json` - Configuração do shadcn/ui.
+## Backend no proprio app
 
-## Requisitos da Plataforma
+- Rotas HTTP em `src/app/api/`.
+- Server actions em:
+  - `src/lib/actions/ai.ts`
+  - `src/lib/actions/dashboard.ts`
+  - `src/lib/actions/nav.ts`
+  - `src/lib/actions/users.ts`
+- Middleware em `src/middleware.ts`.
 
-**Desenvolvimento:**
-- Node.js e npm instalados.
-- Arquivo `dev.db` na raiz ou conforme especificado em `DATABASE_URL`.
+## Testes
 
-**Produção:**
-- Alvo de implantação compatível com Next.js (Vercel, Docker, etc.).
-- Persistência para o arquivo SQLite se não for usado um banco remoto.
+- `Vitest` configurado em `vitest.config.ts`.
+- Ambiente `jsdom`.
+- Setup global em `tests/setup.ts`.
+- Suites em `tests/unit/` e `tests/unit/ai/`.
+- Bibliotecas auxiliares:
+  - `@testing-library/react`
+  - `@testing-library/user-event`
+  - `@testing-library/jest-dom`
+  - `jsdom`
 
----
+## Scripts e operacao
 
-*Análise da pilha: 2026-03-12*
+### Scripts do `package.json`
+
+- `npm run dev` -> `next dev`
+- `npm run build` -> `next build`
+- `npm run start` -> `next start`
+- `npm run lint` -> `next lint`
+
+### Seeds e manutencao
+
+- Seed principal em `prisma/seed.ts`.
+- Scripts adicionais em `prisma/*.ts` e `scripts/*.ts`, como:
+  - `scripts/setup-fts5.ts`
+  - `scripts/seed-100-tickets.ts`
+  - `scripts/check-ai-logs.ts`
+  - `scripts/cleanup-and-seed.ts`
+
+## Arquivos de configuracao principais
+
+- `package.json`
+- `tsconfig.json`
+- `postcss.config.js`
+- `components.json`
+- `vitest.config.ts`
+- `.env`
+- `.env.local`
+
+## Resumo operacional
+
+- O projeto e um monolito moderno em `Next.js`.
+- A stack mistura service desk, autenticacao por credenciais, dashboards e recursos fortes de IA.
+- A base tecnica principal hoje e: `Next.js` + `Prisma` + `SQLite` + `NextAuth` + `Tailwind` + `Vercel AI SDK`.
