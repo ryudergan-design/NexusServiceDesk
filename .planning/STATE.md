@@ -15,4 +15,5 @@ O foco agora é transformar o sistema em uma ferramenta de alta produtividade co
 
 ## Histórico de Decisões do Marco
 - **2026-03-12:** Conclusão da Fase 5 com implementação de IA Agêntica e RAG.
+- **2026-03-14:** Validação final da Fase 5 e formalização do Plano 05-03 (Agentes de Resolução e NPS).
 - **2026-03-12:** Início da Fase 6 focada em Polimento, Performance e Deploy.

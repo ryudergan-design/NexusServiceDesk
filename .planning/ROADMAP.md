@@ -55,10 +55,10 @@
 **Objetivo:** Automatizar a triagem, coleta de dados e auxiliar na resolução usando Agentes de IA e RAG no SQLite.
 
 **Plans:** 4 planos
-- [ ] 05-01-PLAN.md — Infraestrutura de IA, FTS5 e Contratos Zod.
-- [ ] 05-02-PLAN.md — Implementação dos Agentes de Triagem, Coleta e Engine de RAG.
-- [ ] 05-03-PLAN.md — Agentes Solucionador, Curadoria e Backend de Sentimento NPS.
-- [ ] 05-04-PLAN.md — Componentes de UI (Insight Card, Magic Compose, Chat) e Dashboard NPS.
+- [x] 05-01-PLAN.md — Infraestrutura de IA, FTS5 e Contratos Zod.
+- [x] 05-02-PLAN.md — Implementação dos Agentes de Triagem, Coleta e Engine de RAG.
+- [x] 05-03-PLAN.md — Agentes Solucionador, Curadoria e Backend de Sentimento NPS.
+- [x] 05-04-PLAN.md — Componentes de UI (Insight Card, Magic Compose, Chat) e Dashboard NPS.
 
 ## Fase 6: Polimento Final e Deploy (Produção)
 **Objetivo:** Garantir uma UX excepcional, alta performance e preparação para o ambiente de produção.
