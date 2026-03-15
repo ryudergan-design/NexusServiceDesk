@@ -138,8 +138,10 @@ export function DeskView({
 
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-950/50 overflow-hidden shadow-2xl backdrop-blur-xl h-full flex flex-col">
+      <div ref={containerRef} className="flex-1 overflow-auto custom-scrollbar min-h-[420px]">
+        <div className="min-w-[1360px]">
       <div
-        className="grid border-b border-white/5 bg-white/[0.03] px-4 py-3"
+        className="sticky top-0 z-10 grid border-b border-white/5 bg-slate-950/95 px-4 py-3 backdrop-blur-xl"
         style={{ gridTemplateColumns }}
       >
         <button type="button" className="flex items-center text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors text-left" onClick={() => handleSort("id")}>
@@ -173,7 +175,7 @@ export function DeskView({
           </div>
         </div>
       ) : (
-        <div ref={containerRef} className="flex-1 overflow-auto custom-scrollbar min-h-[420px]">
+        <div>
           <div style={{ paddingTop, paddingBottom }}>
             {visibleTickets.map((ticket) => {
               const statusPresentation = statusConfig[ticket.status] || fallbackStatus
@@ -303,6 +305,8 @@ export function DeskView({
           </div>
         </div>
       )}
+        </div>
+      </div>
     </div>
   )
 }

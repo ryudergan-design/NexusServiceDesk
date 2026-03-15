@@ -39,6 +39,7 @@ function TicketsPageContent() {
       if (agentId) params.append("agentId", agentId)
 
       const res = await fetch(`/api/tickets?${params.toString()}`)
+      if (!res.ok) throw new Error("Falha ao carregar chamados")
       const data = await res.json()
       setTickets(Array.isArray(data) ? data : [])
     } catch {
@@ -57,11 +58,15 @@ function TicketsPageContent() {
   useEffect(() => {
     if (agentId) {
       fetch("/api/users/staff")
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error("Falha ao carregar atendentes")
+          return res.json()
+        })
         .then((data) => {
           const agent = data.find((item: any) => item.id === agentId)
           setSelectedAgent(agent)
         })
+        .catch(() => setSelectedAgent(null))
     } else {
       setSelectedAgent(null)
     }
@@ -75,8 +80,9 @@ function TicketsPageContent() {
 
     fetchTickets()
     fetch("/api/auth/session")
-      .then((res) => res.json())
+      .then((res) => (res.ok ? res.json() : null))
       .then((data) => setCurrentUser(data?.user))
+      .catch(() => setCurrentUser(null))
   }, [view, agentId])
 
   const handleViewChange = (mode: ViewMode) => {

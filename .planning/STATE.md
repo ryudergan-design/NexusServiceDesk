@@ -17,6 +17,9 @@ O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de m
 - [x] Dashboard principal com area dedicada para leitura operacional da IA
 - [x] Central de chamados otimizada com virtualizacao no Desk e no Kanban
 - [x] Kanban geral limitado a chamados novos sem atendente e tickets do proprio atendente
+- [x] Detalhe do chamado ajustado para mobile com rolagem horizontal em blocos naturalmente largos
+- [x] Gestao de Usuarios adaptada para mobile com cards e evidencia visual antes/depois
+- [x] Tratamento de fetch endurecido em notificacoes, sidebar e carregamento da central
 - [x] Rodada documentada de simulacao com 100 chamados e processamento real por IA
 - [x] Documentacao institucional oficial com HTML, PDF e capturas reais do sistema
 
@@ -36,4 +39,4 @@ O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de m
 - A documentacao historica foi condensada em 9 fases para reduzir repeticao, melhorar leitura e incluir a camada institucional do projeto.
 
 ## Ponto Atual de Trabalho
-O foco agora e manter a documentacao coerente com o executado, preservar o material institucional oficial, revisar o conteudo de `DIVERGENTES/` e decidir o que deve ser reaproveitado ou eliminado.
+O foco agora e revisar a experiencia mobile com mais profundidade, manter a documentacao coerente com o executado, preservar o material institucional oficial e decidir o que deve ser reaproveitado ou eliminado de `DIVERGENTES/`.

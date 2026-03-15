@@ -9,9 +9,16 @@ Entregar a experiencia principal de atendimento com Desk e Kanban eficientes.
 - `src/components/dashboard/kanban-view.tsx`
 - `src/components/dashboard/ticket-quick-view.tsx`
 - `src/hooks/use-virtual-list.ts`
+- `src/components/dashboard/ticket-detail-view.tsx`
+- `src/app/dashboard/admin/users/users-client.tsx`
+- `src/components/header.tsx`
+- `PROJETO/testes-mobile/`
 
 ## Criterios de Aceite
 - [x] Usuario alterna entre Desk e Kanban.
 - [x] Quick View acelera a operacao.
 - [x] Filas alheias nao aparecem no Kanban geral.
 - [x] Itens fora da area visivel deixam de ser renderizados continuamente.
+- [x] Blocos largos no mobile possuem rolagem horizontal quando necessario.
+- [x] Detalhe do chamado ficou acessivel no mobile sem conteudo preso.
+- [x] Gestao de Usuarios recebeu adaptacao mobile com evidencias antes/depois.

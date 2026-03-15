@@ -16,6 +16,8 @@ Dar visibilidade operacional ao sistema e criar a experiencia principal de atend
 - Filas privadas e supervisao por responsavel.
 - Restricao do Kanban geral para nao expor chamados de outros atendentes ou IAs.
 - Otimizacao de renderizacao com virtualizacao.
+- Ajustes mobile para manter conteudo acessivel em detalhes de chamado e gestao de usuarios.
+- Evidencias de validacao mobile com capturas antes/depois e relatorio dedicado.
 
 ## Evidencias no codigo
 - `src/lib/sla.ts`
@@ -25,3 +27,6 @@ Dar visibilidade operacional ao sistema e criar a experiencia principal de atend
 - `src/components/dashboard/desk-view.tsx`
 - `src/components/dashboard/kanban-view.tsx`
 - `src/components/dashboard/ticket-quick-view.tsx`
+- `src/components/dashboard/ticket-detail-view.tsx`
+- `src/app/dashboard/admin/users/users-client.tsx`
+- `PROJETO/testes-mobile/`

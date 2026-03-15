@@ -49,11 +49,14 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
     
     if (isStaffMode) {
       fetch("/api/users/staff")
-        .then(res => res.json())
+        .then((res) => {
+          if (!res.ok) throw new Error("Falha ao carregar atendentes")
+          return res.json()
+        })
         .then(data => setAgents(Array.isArray(data) ? data : []))
         .catch(e => {
           console.error("Erro ao carregar agentes:", e)
-          toast.error("Erro ao carregar lista de atendentes.")
+          setAgents([])
         })
     }
     

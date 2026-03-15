@@ -12,15 +12,15 @@ export default function TicketDetailsPage({ params }: { params: Promise<{ id: st
   const router = useRouter()
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center gap-4 px-6">
+    <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6">
+      <div className="flex items-center gap-4 px-4 sm:px-6">
         <Button variant="ghost" size="icon" onClick={() => router.back()} className="text-white/60 shrink-0">
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-xl font-bold text-white">Visualização Completa</h1>
       </div>
       
-      <div className="bg-black/20 rounded-2xl border border-white/10 overflow-hidden h-[calc(100vh-180px)]">
+      <div className="min-h-[calc(100dvh-160px)] overflow-x-auto overflow-y-hidden rounded-2xl border border-white/10 bg-black/20 md:h-[calc(100vh-180px)] md:overflow-hidden">
         <TicketDetailView 
           ticketId={id} 
           onClose={() => router.back()} 

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import * as React from "react"
 import { useRouter } from "next/navigation"
@@ -55,7 +55,6 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { SatisfactionSurvey } from "@/components/dashboard/satisfaction-survey"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { DatePicker } from "@/components/ui/date-picker"
 import { AIInsightCard } from "@/components/ai/AIInsightCard"
@@ -131,6 +130,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
   const fetchStaff = async () => {
     try {
       const res = await fetch("/api/users/staff")
+      if (!res.ok) throw new Error("Falha ao carregar atendentes")
       const data = await res.json()
       setStaffUsers(data)
     } catch (error) {
@@ -231,7 +231,10 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
 
   React.useEffect(() => {
     fetchTicket()
-    fetch("/api/auth/session").then(res => res.json()).then(data => setSession(data))
+    fetch("/api/auth/session")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setSession(data))
+      .catch(() => setSession(null))
   }, [ticketId, fetchTicket])
 
   const user = session?.user
@@ -314,12 +317,12 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
   if (!ticket) return <div className="p-8 text-white">Chamado não encontrado.</div>
 
   return (
-    <ScrollArea className="h-full">
+    <div className="h-full overflow-x-auto overflow-y-auto overscroll-contain">
       <HighTechStatusTransition active={isStatusTransitionActive} status={transitionStatus} />
-      <div className="space-y-8 p-8 pb-24 max-w-6xl mx-auto">
+      <div className="mx-auto min-w-[980px] max-w-6xl space-y-6 px-4 py-6 pb-24 sm:space-y-8 sm:p-6 lg:p-8">
         {/* Modals */}
         <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
-          <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-[425px] rounded-2xl">
+          <DialogContent className="w-[calc(100vw-2rem)] rounded-2xl bg-slate-900 border-white/10 text-white sm:max-w-[425px]">
             <DialogHeader><DialogTitle className="flex items-center gap-2"><DollarSign className="h-5 w-5 text-purple-400" /> Orçamento</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="space-y-2"><Label className="text-[10px] uppercase font-black text-white/40">Valor (R$)</Label><Input type="number" value={budgetAmount} onChange={(e) => setBudgetAmount(e.target.value)} className="bg-black/40 border-white/10" /></div>
@@ -330,7 +333,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
         </Dialog>
 
         <Dialog open={isForwardDialogOpen} onOpenChange={setIsForwardDialogOpen}>
-          <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-[425px] rounded-2xl">
+          <DialogContent className="w-[calc(100vw-2rem)] rounded-2xl bg-slate-900 border-white/10 text-white sm:max-w-[425px]">
             <DialogHeader><DialogTitle className="flex items-center gap-2"><UserPlus className="h-5 w-5 text-indigo-400" /> Encaminhar</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
               {staffUsers.filter(u => u.id !== session?.user?.id && !u.isAI).map((staff) => (
@@ -349,25 +352,28 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
         <div className="flex flex-col gap-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-1">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
                 <Badge className="bg-primary text-white border-0 text-[10px] font-black uppercase tracking-widest h-5 px-2 shadow-lg shadow-primary/20">{statusLabels[ticket.status]}</Badge>
                 <div className="h-1 w-1 rounded-full bg-white/20" />
                 <span className="text-[11px] text-white/60 font-black tracking-widest uppercase bg-white/5 px-2 py-0.5 rounded border border-white/5">ID {ticketId}</span>
               </div>
-              <div className="flex items-center gap-4">
-                <h1 className="text-3xl font-black text-white tracking-tight leading-tight">{ticket.title}</h1>
-                <RobotAssignment 
-                  ticketId={ticket.id} 
-                  currentAssigneeId={ticket.assigneeId} 
-                  onAssigned={() => {
-                    triggerStatusAnimation("TRIAGE")
-                    fetchTicket()
-                  }}
-                />
+              <div className="overflow-x-auto pb-1">
+                <div className="flex min-w-max items-center gap-3 pr-3">
+                  <h1 className="text-2xl font-black text-white tracking-tight leading-tight sm:text-3xl">{ticket.title}</h1>
+                  <RobotAssignment 
+                    ticketId={ticket.id} 
+                    currentAssigneeId={ticket.assigneeId} 
+                    onAssigned={() => {
+                      triggerStatusAnimation("TRIAGE")
+                      fetchTicket()
+                    }}
+                  />
+                </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="overflow-x-auto pb-1">
+              <div className="flex min-w-max items-center gap-2 pr-3">
               {canInternal && (
                 <>
                   {!ticket.assigneeId ? (
@@ -399,12 +405,13 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                   )}
                 </>
               )}
+              </div>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="grid gap-8 lg:grid-cols-12">
+        <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-8 space-y-8">
             {canApprove && (
               <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="p-6 rounded-3xl bg-primary/10 border border-primary/20 flex flex-col gap-6 shadow-2xl">
@@ -419,17 +426,18 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
 
             <Card className="border-white/10 bg-white/[0.03] backdrop-blur-md rounded-3xl overflow-hidden shadow-xl border-t-2 border-t-white/5">
               <CardHeader className="bg-white/5 py-4 px-6"><CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 text-white/40"><FileText className="h-4 w-4" /> Detalhamento</CardTitle></CardHeader>
-              <CardContent className="p-8"><RichTextRenderer content={ticket.description} />{ticket.attachments?.length > 0 && <div className="mt-10 pt-8 border-t border-white/5 flex flex-wrap gap-3">{ticket.attachments.map((file: any) => (<a key={file.id} href={file.fileUrl} target="_blank" className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-black uppercase tracking-tighter text-white/60 hover:bg-white/10 transition-all"><Paperclip className="h-3.5 w-3.5 text-primary" />{file.filename}</a>))}</div>}</CardContent>
+              <CardContent className="overflow-x-auto p-4 sm:p-6 lg:p-8"><RichTextRenderer content={ticket.description} />{ticket.attachments?.length > 0 && <div className="mt-10 pt-8 border-t border-white/5 flex flex-wrap gap-3">{ticket.attachments.map((file: any) => (<a key={file.id} href={file.fileUrl} target="_blank" className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-[11px] font-black uppercase tracking-tighter text-white/60 hover:bg-white/10 transition-all"><Paperclip className="h-3.5 w-3.5 text-primary" />{file.filename}</a>))}</div>}</CardContent>
             </Card>
 
             {canInternal ? (
               <Card ref={formRef} className={cn("border-white/10 transition-all rounded-3xl overflow-hidden shadow-xl", pendingStatus ? "bg-primary/5 border-primary/40 border-t-2" : "bg-white/[0.03]")}>
                 <CardHeader className="bg-white/5 py-4 px-6">
-                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-between text-white/40">
+                  <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" /> {pendingStatus ? "Alterar Status" : "Atividade"}
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="overflow-x-auto pb-1">
+                      <div className="flex min-w-max items-center gap-4 pr-3">
                       <MagicCompose 
                         ticketId={ticketId} 
                         text={comment}
@@ -445,16 +453,17 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                           <Badge className="text-[10px] bg-primary text-white">{statusLabels[pendingStatus]}</Badge>
                         </div>
                       )}
+                      </div>
                     </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-8">
+                <CardContent className="overflow-x-auto p-4 sm:p-6 lg:p-8">
                   <form onSubmit={handleSubmitComment} className="space-y-6">
                     <div className="relative rounded-xl overflow-hidden">
                       <TechPowerOverlay active={isPowerActive} />
                       <RichTextEditor placeholder="Descreva aqui..." value={comment} onChange={(v) => setComment(v)} />
                     </div>
-<div className="flex flex-col sm:flex-row justify-between items-center gap-6"><div className="flex gap-6"><div className="flex items-center gap-3"><input type="checkbox" id="isInternal" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} className="h-5 w-5 rounded border-white/10 bg-black/40 text-primary" /><Label htmlFor="isInternal" className="text-xs font-black uppercase tracking-widest text-white/40 flex items-center gap-2">Privada <Lock className="h-3 w-3" /></Label></div><div className="flex items-center gap-3"><Label className="text-xs font-black uppercase tracking-widest text-white/40">Minutos:</Label><Input type="number" min="0" className="w-20 h-10 bg-black/40 border-white/10 text-xs font-bold text-center" value={timeSpent} onChange={(e) => setTimeSpent(e.target.value)} /><Button type="button" variant="outline" size="icon" onClick={pasteTime} className="h-10 w-10 border-white/10"><History className="h-4 w-4" /></Button></div></div><Button type="submit" disabled={isSubmitting || !comment.trim()} className="bg-primary hover:bg-primary/80 h-11 px-8 font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-primary/20">Registrar</Button></div></form></CardContent>
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div className="overflow-x-auto pb-1"><div className="flex min-w-max items-center gap-6 pr-3"><div className="flex items-center gap-3"><input type="checkbox" id="isInternal" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} className="h-5 w-5 rounded border-white/10 bg-black/40 text-primary" /><Label htmlFor="isInternal" className="text-xs font-black uppercase tracking-widest text-white/40 flex items-center gap-2">Privada <Lock className="h-3 w-3" /></Label></div><div className="flex items-center gap-3"><Label className="text-xs font-black uppercase tracking-widest text-white/40">Minutos:</Label><Input type="number" min="0" className="w-20 h-10 bg-black/40 border-white/10 text-xs font-bold text-center" value={timeSpent} onChange={(e) => setTimeSpent(e.target.value)} /><Button type="button" variant="outline" size="icon" onClick={pasteTime} className="h-10 w-10 border-white/10"><History className="h-4 w-4" /></Button></div></div></div><Button type="submit" disabled={isSubmitting || !comment.trim()} className="bg-primary hover:bg-primary/80 h-11 w-full sm:w-auto px-8 font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-primary/20">Registrar</Button></div></form></CardContent>
               </Card>
             ) : (!isClosedTicketStatus(ticket.status) && (
               <Card className="border-white/10 bg-white/[0.03] border-dashed rounded-3xl overflow-hidden shadow-xl">
@@ -471,7 +480,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                     />
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-8">
+                <CardContent className="overflow-x-auto p-4 sm:p-6 lg:p-8">
                   <form onSubmit={handleSubmitComment} className="space-y-6">
                     <RichTextEditor placeholder="Sua resposta..." value={comment} onChange={(v) => setComment(v)} />
                     <div className="flex justify-end">
@@ -488,11 +497,11 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
               <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/20 flex items-center gap-3 ml-2"><History className="h-4 w-4" /> Histórico</h3>
               <div className="relative space-y-10 before:absolute before:inset-0 before:ml-5 before:w-0.5 before:bg-gradient-to-b before:from-primary/50 before:via-white/5 before:to-transparent">
                 {timeline.map((item: any) => (
-                  <div key={item.id} className="relative flex items-start gap-8 pl-2 group/time">
+                  <div key={item.id} className="relative flex items-start gap-5 pl-2 group/time sm:gap-8">
                     <div className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-950 border-2 z-10", item.timelineType === "transition" ? "border-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "border-white/20")}>{item.timelineType === "transition" ? <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" /> : <MessageSquare className={cn("h-3 w-3", item.isInternal ? "text-amber-500" : "text-white/40")} />}</div>
-                    <div className={cn("flex-1 pt-0.5 transition-all", item.isInternal ? "bg-amber-500/[0.03] p-6 rounded-2xl border border-amber-500/10" : "")}>
-                      <div className="flex items-center justify-between gap-4 mb-3"><div className="text-[11px] font-black uppercase tracking-widest text-white/80">{(item.performedBy || item.author).name}{item.timelineType === "transition" ? <span className="font-bold text-white/30"> » MUDOU PARA {statusLabels[item.toStatus]}</span> : <span className="font-bold text-white/30"> » RESPONDEU</span>}</div><time className="text-[9px] font-black text-white/20 uppercase tabular-nums">{new Date(item.createdAt).toLocaleString()}</time></div>
-                      {item.content || item.comment ? (<div className="text-[13px] font-medium text-white/60 leading-relaxed"><RichTextRenderer content={item.content || item.comment} />{item.timelineType === "transition" && isClosedTicketStatus(item.toStatus) && activeRole === "USER" && !ticket.survey && !isSurveyExpired && (<div className="mt-6"><Button onClick={() => setIsSurveyDialogOpen(true)} className="bg-amber-500 hover:bg-amber-600 h-8 px-4 text-[10px] font-black uppercase tracking-widest gap-2 rounded-lg shadow-lg shadow-amber-900/20"><Star className="h-3 w-3 fill-current" /> Avaliar Agora</Button></div>)}</div>) : null}
+                    <div className={cn("min-w-0 flex-1 pt-0.5 transition-all", item.isInternal ? "bg-amber-500/[0.03] p-4 sm:p-6 rounded-2xl border border-amber-500/10" : "")}>
+                      <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between"><div className="overflow-x-auto"><div className="min-w-max text-[11px] font-black uppercase tracking-widest text-white/80">{(item.performedBy || item.author).name}{item.timelineType === "transition" ? <span className="font-bold text-white/30"> » MUDOU PARA {statusLabels[item.toStatus]}</span> : <span className="font-bold text-white/30"> » RESPONDEU</span>}</div></div><time className="text-[9px] font-black text-white/20 uppercase tabular-nums">{new Date(item.createdAt).toLocaleString()}</time></div>
+                      {item.content || item.comment ? (<div className="overflow-x-auto text-[13px] font-medium text-white/60 leading-relaxed"><RichTextRenderer content={item.content || item.comment} />{item.timelineType === "transition" && isClosedTicketStatus(item.toStatus) && activeRole === "USER" && !ticket.survey && !isSurveyExpired && (<div className="mt-6"><Button onClick={() => setIsSurveyDialogOpen(true)} className="bg-amber-500 hover:bg-amber-600 h-8 px-4 text-[10px] font-black uppercase tracking-widest gap-2 rounded-lg shadow-lg shadow-amber-900/20"><Star className="h-3 w-3 fill-current" /> Avaliar Agora</Button></div>)}</div>) : null}
                     </div>
                   </div>
                 ))}
@@ -508,7 +517,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                   <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-400">Cronograma Técnico</CardTitle>
                   <Calendar className="h-3.5 w-3.5 text-emerald-500/40" />
                 </CardHeader>
-                <CardContent className="space-y-4 p-6">
+                <CardContent className="space-y-4 p-4 sm:p-6">
                   <div className="space-y-2">
                     <Label className="text-[9px] uppercase font-black text-white/30 tracking-widest ml-1">Data de Início</Label>
                     <DatePicker date={plannedStartDate} setDate={handleStartDateChange} placeholder="Definir início" />
@@ -543,15 +552,15 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
 
             <Card className="border-white/10 bg-white/[0.02] rounded-3xl overflow-hidden shadow-xl">
               <CardHeader className="bg-white/5 py-4 px-6 border-b border-white/5"><CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Ficha Técnica</CardTitle></CardHeader>
-              <CardContent className="space-y-6 p-6">
+              <CardContent className="space-y-6 p-4 sm:p-6">
                 <div className="space-y-4">
-                  <div className="flex justify-between items-center"><span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Cliente</span><span className="text-xs text-white font-bold">{ticket.requester?.name || "---"}</span></div>
-                  <div className="flex justify-between items-center"><span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Atendente</span><span className="text-xs text-white font-bold">{ticket.assignee?.name || "---"}</span></div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between"><span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Cliente</span><span className="text-xs text-white font-bold break-all text-left sm:text-right">{ticket.requester?.name || "---"}</span></div>
+                  <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between"><span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Atendente</span><span className="text-xs text-white font-bold break-all text-left sm:text-right">{ticket.assignee?.name || "---"}</span></div>
+                  <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                     <span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Prioridade</span>
                     <Badge className={cn("h-5 text-[9px] px-2 font-black uppercase border-0 shadow-sm", ticket.priority === "CRITICAL" ? "bg-red-500 text-white animate-pulse" : ticket.priority === "HIGH" ? "bg-orange-500 text-white" : "bg-white/10 text-white/60")}>{ticket.priority}</Badge>
                   </div>
-                  <div className="flex justify-between items-center"><span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Categoria</span><span className="text-xs text-white/80 font-bold">{ticket.category?.name || "---"}</span></div>
+                  <div className="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between"><span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Categoria</span><span className="text-xs text-white/80 font-bold break-words text-left sm:text-right">{ticket.category?.name || "---"}</span></div>
                 </div>
                 <div className="pt-6 border-t border-white/5"><div className="flex justify-between items-end"><div className="space-y-1"><span className="text-[9px] text-white/20 uppercase font-black tracking-widest">Esforço Total</span><p className="text-2xl font-black text-primary tracking-tighter">{totalTimeSpent} <span className="text-[10px] text-primary/40 uppercase">min</span></p></div><div className="h-10 w-10 rounded-xl bg-primary/5 border border-primary/10 flex items-center justify-center shadow-inner"><Clock className="h-5 w-5 text-primary/40" /></div></div></div>
               </CardContent>
@@ -559,6 +568,6 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
           </div>
         </div>
       </div>
-    </ScrollArea>
+    </div>
   )
 }
