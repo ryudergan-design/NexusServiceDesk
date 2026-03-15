@@ -1,7 +1,7 @@
 # Requisitos: I9 Chamados
 
 ## Escopo Atual Consolidado
-Este documento reflete o que o projeto considera como base funcional atual apos a reorganizacao em `8 fases`.
+Este documento reflete o que o projeto considera como base funcional atual apos a reorganizacao em `9 fases`.
 
 ## Requisitos Funcionais
 
@@ -33,7 +33,8 @@ Este documento reflete o que o projeto considera como base funcional atual apos 
 - O sistema deve permitir acompanhar filas de outros atendentes e de IAs por navegacao explicita.
 - O dashboard principal autenticado deve refletir o padrao visual high-tech atual do produto.
 - O dashboard principal autenticado deve oferecer uma area dedicada para leitura operacional da IA.
-- A home deve exibir um painel visual de apresentacao coerente com o workflow real do produto.
+- A home deve exibir uma composicao visual high-tech coerente com o workflow real do produto, sem depender de um painel lateral fixo.
+- A home deve evitar repeticao excessiva de mensagem e manter boa legibilidade tipografica, inclusive em textos com acentuacao.
 
 ### RF06 - IA no Atendimento
 - O sistema deve permitir cadastrar usuarios marcados como IA.
@@ -56,6 +57,12 @@ Este documento reflete o que o projeto considera como base funcional atual apos 
 - O banco oficial do projeto deve continuar sendo `SQLite` com `Prisma`.
 - O projeto deve manter um espelho estrutural para `Supabase/PostgreSQL`.
 - Toda mudanca relevante no schema oficial deve ser revisada contra o espelho.
+
+### RF09 - Documentacao Institucional
+- O projeto deve manter uma documentacao institucional oficial do produto.
+- A documentacao institucional deve usar capturas reais do sistema.
+- A documentacao institucional deve possuir uma versao editavel em HTML e uma versao final em PDF.
+- A documentacao institucional deve registrar autoria e refletir o estado consolidado do produto.
 
 ## Requisitos Nao Funcionais
 

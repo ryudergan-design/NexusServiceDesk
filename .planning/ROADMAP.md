@@ -1,7 +1,7 @@
 # Roadmap: I9 Chamados
 
 ## Visao Geral
-O roadmap oficial do projeto foi consolidado em `8 fases` documentadas dentro de `.planning/phase-1-fundacao-auth-base` ate `.planning/phase-8-estrategia-banco-espelho`.
+O roadmap oficial do projeto foi consolidado em `9 fases` documentadas dentro de `.planning/phase-1-fundacao-auth-base` ate `.planning/phase-9-documentacao-institucional`.
 
 ## Fase 1 - Fundacao, Auth e Base do Produto
 Status: concluida
@@ -60,6 +60,13 @@ Status: concluida
 - verificacao de defasagem
 - fluxo de manutencao documentado
 
+## Fase 9 - Documentacao Institucional
+Status: concluida
+- documentacao institucional oficial do produto
+- capturas reais das telas principais
+- documento em HTML para manutencao versionada
+- PDF final para apresentacao e compartilhamento
+
 ## Mapa de Absorcao Historica
 - Nova fase 1 absorve a antiga `phase-1`
 - Nova fase 2 absorve a antiga `phase-2` e a parte operacional da antiga `phase-7`
@@ -69,8 +76,9 @@ Status: concluida
 - Nova fase 6 absorve as antigas `phase-9`, `phase-10` e `phase-13`
 - Nova fase 7 absorve a parte de seeds e simulacoes da antiga `phase-7` e os relatorios operacionais posteriores
 - Nova fase 8 absorve a antiga `phase-14`
+- Nova fase 9 registra a documentacao institucional consolidada do produto apos a reorganizacao estrutural
 
 ## Estado Atual do Roadmap
-- Fases documentadas: `8`
+- Fases documentadas: `9`
 - Base ativa: consolidada
-- Foco atual: organizacao, alinhamento documental e triagem de divergentes
+- Foco atual: manutencao coerente da plataforma, da documentacao viva e do material institucional oficial

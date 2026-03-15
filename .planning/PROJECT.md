@@ -1,19 +1,20 @@
 # Projeto: I9 Chamados
 
 ## Estado Atual
-O projeto esta consolidado como uma central de atendimento moderna com base em `Next.js + Prisma + SQLite`, operando com visualizacao `Kanban` e `Desk`, fluxo de chamados completo, assistentes de IA com Gemini e organizacao documental estruturada em `8 fases`.
+O projeto esta consolidado como uma central de atendimento moderna com base em `Next.js + Prisma + SQLite`, operando com visualizacao `Kanban` e `Desk`, fluxo de chamados completo, assistentes de IA com Gemini, organizacao documental estruturada em `9 fases` e documentacao institucional oficial em HTML e PDF.
 
 ## Produto em Operacao
 - Portal de chamados com abertura, acompanhamento e historico.
 - Dashboard para atendimento e administracao.
 - Dashboard principal autenticado com leitura high-tech por perfil.
 - Dashboard principal autenticado com area dedicada para leitura operacional da IA.
-- Home com painel visual high-tech representando Desk, IA e cronograma operacional.
+- Home com hero high-tech, sinais operacionais essenciais e copy enxuta para apresentacao forte sem cansar a leitura.
 - Visualizacao dual `Kanban` e `Desk`.
 - Atribuicao de chamados para atendentes e IAs.
 - Automacao de comentarios, triagem e escalonamento com Gemini.
 - Magic Compose contextual para abertura e respostas.
 - Espelho estrutural de banco para Supabase, sem alterar o runtime atual.
+- Documentacao institucional completa com capturas reais do sistema.
 
 ## Identidade do Projeto
 - Nome tecnico do projeto: `I9 Chamados`
@@ -43,6 +44,7 @@ O foco atual nao e mais construir o MVP base, e sim:
 - Fase 6: atendimento operacional por IA
 - Fase 7: dados, seeds e simulacoes
 - Fase 8: estrategia de banco e espelho futuro
+- Fase 9: documentacao institucional do projeto
 
 ## Diretriz Atual
-A base oficial do produto e o frontend/backend presente em `src/`, sustentado por `prisma/schema.prisma`, com planejamento vivo em `.planning/` e triagem de legado em `DIVERGENTES/`.
+A base oficial do produto e o frontend/backend presente em `src/`, sustentado por `prisma/schema.prisma`, com planejamento vivo em `.planning/`, documentacao institucional em `PROJETO/documentacao-institucional/` e triagem de legado em `DIVERGENTES/`.

@@ -8,6 +8,7 @@ Esta pasta funciona como portal dos documentos centrais do produto.
 - [ROADMAP.md](C:/Users/AMC/OneDrive/Music/I9%20chamados/.planning/ROADMAP.md)
 - [STATE.md](C:/Users/AMC/OneDrive/Music/I9%20chamados/.planning/STATE.md)
 - [RESEARCH.md](C:/Users/AMC/OneDrive/Music/I9%20chamados/.planning/research/RESEARCH.md)
+- [Documentacao Institucional](C:/Users/AMC/OneDrive/Music/I9%20chamados/PROJETO/documentacao-institucional/README.md)
 
 ## Motivo
 Os arquivos continuam em `.planning` para preservar o fluxo do GSD, mas esta pasta deixa o acesso mais organizado para consulta humana.

@@ -1,7 +1,7 @@
 # Estado do Projeto: I9 Chamados
 
 ## Situacao Atual
-O projeto esta operacional, documentado em `8 fases consolidadas` e em fase de maturidade estrutural da base.
+O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de maturidade estrutural da base.
 
 ## Resumo do Progresso
 - [x] Fases consolidadas em 8 blocos documentais
@@ -11,11 +11,14 @@ O projeto esta operacional, documentado em `8 fases consolidadas` e em fase de m
 - [x] Espelho estrutural do Supabase validado
 - [x] Artefatos paralelos separados em `DIVERGENTES/`
 - [x] Home alinhada ao visual high-tech e ao workflow atual do produto
+- [x] Home publica refinada com hero high-tech sem o painel lateral legado
+- [x] Home publica refinada com menos repeticao de mensagem e melhor leitura tipografica
 - [x] Dashboard principal autenticado alinhado ao visual high-tech atual
 - [x] Dashboard principal com area dedicada para leitura operacional da IA
 - [x] Central de chamados otimizada com virtualizacao no Desk e no Kanban
 - [x] Kanban geral limitado a chamados novos sem atendente e tickets do proprio atendente
 - [x] Rodada documentada de simulacao com 100 chamados e processamento real por IA
+- [x] Documentacao institucional oficial com HTML, PDF e capturas reais do sistema
 
 ## Estrutura Oficial Atual
 - Produto principal: `src/`
@@ -23,13 +26,14 @@ O projeto esta operacional, documentado em `8 fases consolidadas` e em fase de m
 - Banco oficial: `prisma/schema.prisma` e `prisma/dev.db`
 - Banco espelho futuro: `BANCO_DE_DADOS/SUPABASE/`
 - Portais de navegacao humana: `PROJETO/`, `DESENVOLVIMENTO/`, `SITE/`, `BANCO_DE_DADOS/`
+- Documentacao institucional: `PROJETO/documentacao-institucional/`
 
 ## Decisoes Consolidadas
 - O runtime principal permanece no padrao nativo do `Next.js`.
 - O fluxo GSD continua ancorado em `.planning/`.
 - O banco oficial nao mudou para Supabase.
 - O espelho do Supabase existe apenas como preparacao estrutural.
-- A documentacao historica foi condensada em 8 fases para reduzir repeticao e melhorar leitura.
+- A documentacao historica foi condensada em 9 fases para reduzir repeticao, melhorar leitura e incluir a camada institucional do projeto.
 
 ## Ponto Atual de Trabalho
-O foco agora e manter a documentacao coerente com o executado, revisar o conteudo de `DIVERGENTES/` e decidir o que deve ser reaproveitado ou eliminado.
+O foco agora e manter a documentacao coerente com o executado, preservar o material institucional oficial, revisar o conteudo de `DIVERGENTES/` e decidir o que deve ser reaproveitado ou eliminado.
