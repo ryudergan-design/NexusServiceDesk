@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth-provider";
 import { Toaster } from "sonner"
 import { CustomCursor } from "@/components/custom-cursor";
+import { RouteBodyState } from "@/components/route-body-state";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,6 +29,7 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
+            <RouteBodyState />
             <CustomCursor />
             {children}
             <Toaster richColors closeButton position="top-right" />

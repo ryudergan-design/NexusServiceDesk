@@ -75,6 +75,15 @@
   }
 }
 
+@media (max-width: 1023px) {
+  body[data-mobile-debug="false"] nextjs-portal,
+  body[data-mobile-debug="false"] [data-next-badge-root],
+  body[data-mobile-debug="false"] [data-next-mark],
+  body[data-mobile-debug="false"] [data-nextjs-toast-wrapper] {
+    display: none !important;
+  }
+}
+
 /* Esconder cursor nativo em telas com mouse */
 @media (pointer: fine) {
   body, 

@@ -23,6 +23,7 @@ Tornar o uso mobile do produto agradável, legível e coerente com uma futura ex
 - Criar fase dedicada no planejamento.
 - Atualizar `PROJECT`, `ROADMAP`, `REQUIREMENTS`, `STATE` e `config.json`.
 - Gerar comparativos visuais em `PROJETO/mudancas-visuais/`.
+- Seguir o fluxo de entrega com evidência visual, `commit` e `push`.
 
 ## Critérios de conclusão
 - Navegação mobile com melhor sensação de app.

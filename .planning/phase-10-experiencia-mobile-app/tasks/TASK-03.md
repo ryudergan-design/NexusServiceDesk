@@ -8,3 +8,4 @@ Garantir que a evolução visual mobile fique documentada e auditável.
 - [x] Arquivos centrais do projeto atualizados.
 - [x] Script de captura comparativa criado.
 - [x] Estrutura `before/after` preenchida para telas principais em mobile e desktop.
+- [x] Regra permanente registrada para fase + evidência visual + commit/push.

@@ -50,3 +50,9 @@ O foco atual nao e mais construir o MVP base, e sim:
 
 ## Diretriz Atual
 A base oficial do produto e o frontend/backend presente em `src/`, sustentado por `prisma/schema.prisma`, com planejamento vivo em `.planning/`, documentacao institucional em `PROJETO/documentacao-institucional/` e triagem de legado em `DIVERGENTES/`.
+
+## Regra de Entrega Continua
+- Toda mudanca relevante deve estar documentada em uma fase.
+- Se a mudanca nao se encaixar em nenhuma fase existente, uma nova fase deve ser criada.
+- Toda mudanca visual deve gerar evidencias `before/after` em `PROJETO/mudancas-visuais/`.
+- O fluxo padrao de entrega apos validacao e `commit` seguido de `push`.

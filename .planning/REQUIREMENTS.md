@@ -79,3 +79,5 @@ Este documento reflete o que o projeto considera como base funcional atual apos 
 ### RNF03 - Rastreabilidade
 - O planejamento em `.planning/` deve refletir a evolucao consolidada do projeto.
 - Artefatos fora do fluxo principal devem ser separados para triagem em `DIVERGENTES/`.
+- Mudancas relevantes devem ser associadas a uma fase existente ou a uma fase nova quando necessario.
+- Mudancas visuais devem manter evidencia `before/after` em estrutura simplificada por dispositivo e data.
