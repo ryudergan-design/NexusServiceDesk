@@ -11,3 +11,5 @@ Tornar a entrada do produto coerente com o Nexus ServiceDesk atual.
 - [x] Home representa o fluxo real do produto.
 - [x] Branding Nexus esta visivel.
 - [x] Dashboard principal segue o padrao high-tech atual.
+- [x] Home publica mantém presenca high-tech com hero e sinais operacionais, sem o painel lateral antigo.
+- [x] Home publica teve reducao de informacao repetitiva e ajuste de tipografia para leitura mais confortavel.
