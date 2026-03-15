@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
 import { startOfDay, endOfDay, subDays } from "date-fns"
+import { CLOSED_TICKET_STATUSES } from "@/lib/ticket-status"
 
 export async function GET(req: Request) {
   const session = await auth()
@@ -28,14 +29,14 @@ export async function GET(req: Request) {
     const slaCompliance = await prisma.ticket.count({
       where: {
         resolutionTimeDue: { gte: now },
-        status: { not: "COMPLETED" }
+        status: { notIn: [...CLOSED_TICKET_STATUSES] }
       }
     })
     
     const slaBreached = await prisma.ticket.count({
       where: {
         resolutionTimeDue: { lt: now },
-        status: { not: "COMPLETED" }
+        status: { notIn: [...CLOSED_TICKET_STATUSES] }
       }
     })
 
@@ -52,7 +53,7 @@ export async function GET(req: Request) {
         compliant: slaCompliance,
         breached: slaBreached
       },
-      totalActive: statusCounts.filter(s => s.status !== "COMPLETED").reduce((acc, curr) => acc + curr._count, 0)
+      totalActive: statusCounts.filter(s => !CLOSED_TICKET_STATUSES.includes(s.status as any)).reduce((acc, curr) => acc + curr._count, 0)
     })
   } catch (error) {
     console.error("STATS_GET", error)

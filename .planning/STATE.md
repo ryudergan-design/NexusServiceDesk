@@ -1,19 +1,35 @@
 # Estado do Projeto: I9 Chamados
 
-## Marco: Reestruturação Visual e Autoatendimento
-O foco agora é transformar o sistema em uma ferramenta de alta produtividade com visualização dual e autoatendimento integrado.
+## Situacao Atual
+O projeto esta operacional, documentado em `8 fases consolidadas` e em fase de maturidade estrutural da base.
 
-## Progresso Atual
-- [x] Fundação e Autenticação (Fase 1 e 1.1)
-- [x] Ciclo de Vida do Chamado (Fase 2)
-- [x] SLAs e Dashboards (Fase 3)
-- [x] Lançamento MVP v1.0.0 (Fase 3.1)
-- [x] Reestruturação Visual e Triagem Rápida (Fase 4 - CONCLUÍDO)
-- [x] Planejamento e Execução da Fase 5: Autoatendimento e Satisfação (CONCLUÍDO)
-- [ ] Planejamento e Execução da Fase 6: Polimento Final e Deploy (EM ANDAMENTO)
-  - [x] Detalhamento das tarefas de performance e otimização no ROADMAP.md.
+## Resumo do Progresso
+- [x] Fases consolidadas em 8 blocos documentais
+- [x] Base principal consolidada em `src/`
+- [x] Planejamento padronizado em `.planning/phase-*`
+- [x] Banco oficial mantido em `SQLite + Prisma`
+- [x] Espelho estrutural do Supabase validado
+- [x] Artefatos paralelos separados em `DIVERGENTES/`
+- [x] Home alinhada ao visual high-tech e ao workflow atual do produto
+- [x] Dashboard principal autenticado alinhado ao visual high-tech atual
+- [x] Dashboard principal com area dedicada para leitura operacional da IA
+- [x] Central de chamados otimizada com virtualizacao no Desk e no Kanban
+- [x] Kanban geral limitado a chamados novos sem atendente e tickets do proprio atendente
+- [x] Rodada documentada de simulacao com 100 chamados e processamento real por IA
 
-## Histórico de Decisões do Marco
-- **2026-03-12:** Conclusão da Fase 5 com implementação de IA Agêntica e RAG.
-- **2026-03-14:** Validação final da Fase 5 e formalização do Plano 05-03 (Agentes de Resolução e NPS).
-- **2026-03-12:** Início da Fase 6 focada em Polimento, Performance e Deploy.
+## Estrutura Oficial Atual
+- Produto principal: `src/`
+- Planejamento vivo: `.planning/`
+- Banco oficial: `prisma/schema.prisma` e `prisma/dev.db`
+- Banco espelho futuro: `BANCO_DE_DADOS/SUPABASE/`
+- Portais de navegacao humana: `PROJETO/`, `DESENVOLVIMENTO/`, `SITE/`, `BANCO_DE_DADOS/`
+
+## Decisoes Consolidadas
+- O runtime principal permanece no padrao nativo do `Next.js`.
+- O fluxo GSD continua ancorado em `.planning/`.
+- O banco oficial nao mudou para Supabase.
+- O espelho do Supabase existe apenas como preparacao estrutural.
+- A documentacao historica foi condensada em 8 fases para reduzir repeticao e melhorar leitura.
+
+## Ponto Atual de Trabalho
+O foco agora e manter a documentacao coerente com o executado, revisar o conteudo de `DIVERGENTES/` e decidir o que deve ser reaproveitado ou eliminado.

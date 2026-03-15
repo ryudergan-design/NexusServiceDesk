@@ -80,7 +80,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
     phone: "",
     isAI: false,
     aiApiKey: "",
-    aiModel: "gemini-1.5-flash",
+    aiModel: "gemini-3.1-flash-lite-preview",
     aiInstructions: ""
   })
 
@@ -101,7 +101,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
       phone: "",
       isAI: isBot,
       aiApiKey: "",
-      aiModel: "gemini-1.5-flash",
+      aiModel: "gemini-3.1-flash-lite-preview",
       aiInstructions: ""
     })
     setIsDialogOpen(true)
@@ -118,7 +118,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
       phone: user.phone || "",
       isAI: user.isAI || false,
       aiApiKey: user.aiApiKey || "",
-      aiModel: user.aiModel || "gemini-1.5-flash",
+      aiModel: user.aiModel || "gemini-3.1-flash-lite-preview",
       aiInstructions: user.aiInstructions || ""
     })
     setIsDialogOpen(true)
@@ -206,7 +206,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                 )}
                 {aiFilter && (
                   <TableCell className="text-white/60 text-xs font-mono">
-                    {user.aiModel || "gemini-1.5-flash"}
+                    {user.aiModel || "gemini-3.1-flash-lite-preview"}
                   </TableCell>
                 )}
                 <TableCell className="text-right">
@@ -358,16 +358,16 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                   <div className="space-y-2 col-span-2">
                     <Label htmlFor="aiModel" className="text-white/60 text-xs uppercase font-bold">Modelo</Label>
                     <Select 
-                      value={formData.aiModel || "gemini-1.5-flash"} 
+                      value={formData.aiModel || "gemini-3.1-flash-lite-preview"} 
                       onValueChange={(v) => setFormData({...formData, aiModel: v})}
                     >
                       <SelectTrigger className="bg-black/40 border-white/10 text-white">
                         <SelectValue placeholder="Selecione o modelo..." />
                       </SelectTrigger>
                       <SelectContent className="bg-slate-900 border-white/10 text-white">
-                        <SelectItem value="gemini-1.5-flash">Gemini 1.5 Flash (Rápido)</SelectItem>
-                        <SelectItem value="gemini-1.5-pro">Gemini 1.5 Pro (Poderoso)</SelectItem>
-                        <SelectItem value="gpt-4o">GPT-4o (OpenAI)</SelectItem>
+                        <SelectItem value="gemini-3.1-flash-lite-preview">Gemini 3.1 Flash Lite Preview (Recomendado)</SelectItem>
+                        <SelectItem value="gemini-3-flash-preview">Gemini 3 Flash Preview</SelectItem>
+                        <SelectItem value="gemini-2.5-flash">Gemini 2.5 Flash</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

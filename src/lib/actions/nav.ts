@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma"
 import { auth } from "@/auth"
+import { CLOSED_TICKET_STATUSES } from "@/lib/ticket-status"
 
 export async function getNavCounts() {
   const session = await auth()
@@ -9,46 +10,47 @@ export async function getNavCounts() {
 
   const userId = (session.user as any).id
   const role = ((session.user as any) as any).role
-
   const isAgentOrAdmin = role === "ADMIN" || role === "AGENT"
 
+  const openStatusFilter = { notIn: [...CLOSED_TICKET_STATUSES] }
+
   const [unassigned, assignedToMe, awaitingUser, awaitingApproval, myTickets, myAwaitingApproval, myAwaitingResponse] = await Promise.all([
-    // Chamados sem atendente (Apenas para staff)
-    isAgentOrAdmin ? prisma.ticket.count({
-      where: { assigneeId: null, status: { not: "COMPLETED" } }
-    }) : 0,
+    isAgentOrAdmin
+      ? prisma.ticket.count({
+          where: { assigneeId: null, status: openStatusFilter },
+        })
+      : 0,
 
-    // AtribuÃ­dos a mim (Apenas para staff)
-    isAgentOrAdmin ? prisma.ticket.count({
-      where: { assigneeId: userId, status: { not: "COMPLETED" } }
-    }) : 0,
+    isAgentOrAdmin
+      ? prisma.ticket.count({
+          where: { assigneeId: userId, status: openStatusFilter },
+        })
+      : 0,
 
-    // Aguardando Cliente (Apenas para staff)
-    isAgentOrAdmin ? prisma.ticket.count({
-      where: { status: "PENDING_USER" }
-    }) : 0,
+    isAgentOrAdmin
+      ? prisma.ticket.count({
+          where: { status: "PENDING_USER" },
+        })
+      : 0,
 
-    // OrÃ§amento / AprovaÃ§Ã£o (Apenas para staff)
-    isAgentOrAdmin ? prisma.ticket.count({
-      where: { status: "BUDGET_APPROVAL" }
-    }) : 0,
+    isAgentOrAdmin
+      ? prisma.ticket.count({
+          where: { status: "AWAITING_APPROVAL" },
+        })
+      : 0,
 
-    // Criados por mim (Minhas SolicitaÃ§Ãµes - Para todos)
     prisma.ticket.count({
-      where: { requesterId: userId, status: { not: "COMPLETED" } }
+      where: { requesterId: userId, status: openStatusFilter },
     }),
 
-    // Minhas AprovaÃ§Ãµes Pendentes (Para cliente)
     prisma.ticket.count({
-      where: { requesterId: userId, status: "BUDGET_APPROVAL" }
+      where: { requesterId: userId, status: "AWAITING_APPROVAL" },
     }),
 
-    // Minhas Respostas Pendentes (Para cliente)
     prisma.ticket.count({
-      where: { requesterId: userId, status: "PENDING_USER" }
-    })
+      where: { requesterId: userId, status: "PENDING_USER" },
+    }),
   ])
-
 
   return {
     unassigned,
@@ -57,6 +59,6 @@ export async function getNavCounts() {
     awaitingApproval,
     myTickets,
     myAwaitingApproval,
-    myAwaitingResponse
+    myAwaitingResponse,
   }
 }

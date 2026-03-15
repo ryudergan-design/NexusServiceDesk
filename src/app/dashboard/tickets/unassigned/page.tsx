@@ -1,55 +1,66 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import { 
-  Plus, 
-  Search, 
-  Clock,
-  UserPlus,
-  AlertTriangle,
-  ArrowRight
-} from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { SLAProgress } from "@/components/dashboard/sla-progress"
-import { toast } from "sonner"
+import { useEffect, useState } from "react"
+import { AnimatePresence, motion } from "framer-motion"
+import { AlertTriangle, Clock, Filter, Search, UserPlus } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+
+import { DeskView } from "@/components/dashboard/desk-view"
+import { KanbanView } from "@/components/dashboard/kanban-view"
 import { TicketQuickView } from "@/components/dashboard/ticket-quick-view"
+import { ViewMode, ViewToggle } from "@/components/dashboard/view-toggle"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 export default function UnassignedTicketsPage() {
   const [tickets, setTickets] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
+  const [viewMode, setViewMode] = useState<ViewMode>("desk")
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const router = useRouter()
 
   const fetchTickets = async () => {
-    const res = await fetch("/api/tickets?unassigned=true")
-    const data = await res.json()
-    setTickets(data)
-    setIsLoading(false)
+    try {
+      const res = await fetch("/api/tickets?unassigned=true")
+      const data = await res.json()
+      setTickets(Array.isArray(data) ? data : [])
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedMode = localStorage.getItem("i9-tickets-view-mode") as ViewMode
+      if (savedMode) setViewMode(savedMode)
+    }
+
     fetchTickets()
+    fetch("/api/auth/session").then((res) => res.json()).then((data) => setCurrentUser(data?.user))
   }, [])
 
-  const handleAssignToMe = async (ticketId: string) => {
+  const handleViewChange = (mode: ViewMode) => {
+    setViewMode(mode)
+    localStorage.setItem("i9-tickets-view-mode", mode)
+    window.dispatchEvent(new Event("storage"))
+  }
+
+  const handleAssignToMe = async (ticketId: string | number) => {
     try {
       const sessionRes = await fetch("/api/auth/session")
       const session = await sessionRes.json()
-      
+
       const res = await fetch(`/api/tickets/${ticketId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           assigneeId: session.user.id,
-          comment: "Chamado assumido pelo atendente via fila de triagem." 
+          comment: "Chamado assumido pelo atendente via fila de triagem."
         })
       })
 
@@ -57,8 +68,11 @@ export default function UnassignedTicketsPage() {
         toast.success("Chamado assumido com sucesso!")
         fetchTickets()
         router.refresh()
+        return
       }
-    } catch (error) {
+
+      toast.error("Nao foi possivel assumir o chamado.")
+    } catch {
       toast.error("Erro ao assumir chamado.")
     }
   }
@@ -68,95 +82,111 @@ export default function UnassignedTicketsPage() {
     setIsQuickViewOpen(true)
   }
 
-  const filteredTickets = tickets.filter(t => 
-    t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    t.id.toString().includes(searchTerm)
+  const filteredTickets = tickets.filter((ticket) =>
+    ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    ticket.id.toString().includes(searchTerm)
   )
 
   return (
-    <div className="space-y-8">
-      <TicketQuickView 
-        ticketId={selectedTicketId} 
-        open={isQuickViewOpen} 
+    <div className={cn(
+      "space-y-8 h-full flex flex-col transition-all duration-500",
+      viewMode === "kanban" ? "max-w-none" : "max-w-7xl mx-auto w-full px-4"
+    )}>
+      <TicketQuickView
+        ticketId={selectedTicketId}
+        open={isQuickViewOpen}
         onOpenChange={setIsQuickViewOpen}
         onUpdate={fetchTickets}
       />
 
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
-          <AlertTriangle className="h-8 w-8 text-amber-500" /> Fila de Triagem
-        </h1>
-        <p className="mt-2 text-muted-foreground">Chamados que ainda não possuem um atendente atribuído.</p>
+      <div className={cn(
+        "flex flex-col gap-4 md:flex-row md:items-center md:justify-between",
+        viewMode === "kanban" && "px-2"
+      )}>
+        <div>
+          <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-white">
+            <AlertTriangle className="h-8 w-8 text-amber-500" /> Fila de Triagem
+          </h1>
+          <p className="mt-2 text-muted-foreground">Chamados que ainda nao possuem um atendente atribuido.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <ViewToggle mode={viewMode} onChange={handleViewChange} />
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-sm">
+      <div className={cn(
+        "flex items-center gap-4",
+        viewMode === "kanban" && "px-2"
+      )}>
+        <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
-          <Input 
-            placeholder="Buscar chamados..." 
-            className="pl-10 bg-white/5 border-white/10"
+          <Input
+            placeholder="Buscar por ID ou titulo..."
+            className="w-full max-w-sm border-white/10 bg-white/5 pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        <Button
+          variant="outline"
+          size="icon"
+          className="border-white/10 bg-white/5"
+          aria-label="Filtros avancados"
+          onClick={() => toast.info("Filtros avancados em desenvolvimento.")}
+        >
+          <Filter className="h-4 w-4" />
+        </Button>
       </div>
 
       {isLoading ? (
-        <div className="text-white/40">Carregando fila...</div>
-      ) : filteredTickets.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredTickets.map((ticket) => (
-            <motion.div key={ticket.id} layout>
-              <Card 
-                className="border-white/10 bg-black/40 hover:bg-white/[0.02] transition-all group cursor-pointer"
-                onClick={() => handleSelectTicket(ticket.id.toString())}
+        <div className="flex flex-1 items-center justify-center text-white/20 animate-pulse">
+          Carregando fila...
+        </div>
+      ) : (
+        <div className="flex-1 min-h-0">
+          {filteredTickets.length > 0 ? (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={viewMode}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="h-full"
               >
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-[10px]">
-                      {ticket.category.name}
-                    </Badge>
-                    <span className="text-[10px] text-white/30">#{ticket.id}</span>
-                  </div>
-
-                  <h3 className="font-semibold text-white group-hover:text-primary transition-colors line-clamp-1">
-                    {ticket.title}
-                  </h3>
-
-                  <SLAProgress 
-                    createdAt={ticket.createdAt} 
-                    dueAt={ticket.resolutionTimeDue} 
-                    label="Tempo de Resolução" 
+                {viewMode === "kanban" ? (
+                  <KanbanView
+                    tickets={filteredTickets}
+                    currentUser={currentUser}
+                    onSelectTicket={handleSelectTicket}
+                    onUpdate={fetchTickets}
                   />
-
-                  <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-white/30 uppercase tracking-tighter">Cliente</span>
-                      <span className="text-xs text-white/70">{ticket.requester.name}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="secondary" 
-                        className="h-8 text-[11px] gap-1"
-                        onClick={(e) => { e.stopPropagation(); handleAssignToMe(ticket.id) }}
+                ) : (
+                  <DeskView
+                    tickets={filteredTickets}
+                    currentUser={currentUser}
+                    onSelectTicket={handleSelectTicket}
+                    onUpdate={fetchTickets}
+                    renderRowActions={(ticket) => (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="h-8 gap-1 text-[11px]"
+                        onClick={() => handleAssignToMe(ticket.id)}
                       >
                         <UserPlus className="h-3 w-3" /> Assumir
                       </Button>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      ) : (
-        <div className="h-64 flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02]">
-          <Clock className="h-8 w-8 text-white/10 mb-2" />
-          <p className="text-sm text-white/20">Tudo limpo! Nenhum chamado aguardando triagem.</p>
+                    )}
+                  />
+                )}
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02]">
+              <Clock className="mb-2 h-8 w-8 text-white/10" />
+              <p className="text-sm text-white/20">Tudo limpo! Nenhum chamado aguardando triagem.</p>
+            </div>
+          )}
         </div>
       )}
     </div>

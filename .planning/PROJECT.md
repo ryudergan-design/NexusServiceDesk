@@ -1,36 +1,48 @@
 # Projeto: I9 Chamados
 
-## Metas Atuais (Marco: Reestruturação Visual e Autoatendimento)
-- [ ] **Dual View Workflow:** Implementar alternância entre Modo Kanban (Cards) e Modo Desk (Lista Tabelada).
-- [ ] **Interface de Triagem Rápida:** Otimizar o Modo Desk para alta densidade de informação e ações rápidas.
-- [ ] **Base de Conhecimento:** Criar portal de autoatendimento integrado ao fluxo de abertura de chamados.
-- [ ] **Pesquisas NPS Avançadas:** Implementar feedback estruturado pós-atendimento.
+## Estado Atual
+O projeto esta consolidado como uma central de atendimento moderna com base em `Next.js + Prisma + SQLite`, operando com visualizacao `Kanban` e `Desk`, fluxo de chamados completo, assistentes de IA com Gemini e organizacao documental estruturada em `8 fases`.
 
-## Objetivo
-Sistema de help desk moderno inspirado no Softdesk (www.softdesk.com.br), seguindo práticas ITIL e focado em automação, dashboards e experiência do usuário fluida.
+## Produto em Operacao
+- Portal de chamados com abertura, acompanhamento e historico.
+- Dashboard para atendimento e administracao.
+- Dashboard principal autenticado com leitura high-tech por perfil.
+- Dashboard principal autenticado com area dedicada para leitura operacional da IA.
+- Home com painel visual high-tech representando Desk, IA e cronograma operacional.
+- Visualizacao dual `Kanban` e `Desk`.
+- Atribuicao de chamados para atendentes e IAs.
+- Automacao de comentarios, triagem e escalonamento com Gemini.
+- Magic Compose contextual para abertura e respostas.
+- Espelho estrutural de banco para Supabase, sem alterar o runtime atual.
 
-## Visão do Produto
-O I9 Chamados visa oferecer uma central de serviços completa com abertura de chamados via portal, e-mail e mobile, dashboards inteligentes e automação de fluxos de trabalho (SLA, aprovações, recorrência).
+## Identidade do Projeto
+- Nome tecnico do projeto: `I9 Chamados`
+- Nome operacional e branding aplicado no produto: `Nexus ServiceDesk`
 
-## Stack Tecnológica
-- **Framework:** Next.js (App Router)
-- **Estilização:** Tailwind CSS + Framer Motion (para animações)
-- **Banco de Dados:** SQLite (Local) + Prisma ORM
-- **Autenticação:** Auth.js v5 (NextAuth) com Credentials Provider
-- **UI Components:** Shadcn/UI + Componentes animados modernos
+## Stack Oficial
+- Framework: `Next.js` com App Router
+- UI: `Tailwind CSS`, `Shadcn/UI`, `Framer Motion`
+- Banco oficial: `SQLite`
+- ORM: `Prisma`
+- Autenticacao: `Auth.js v5`
+- IA ativa: `Gemini` via `@google/genai`
 
-## Identidade Visual
-- **Tema:** Dark Mode (Padrão)
-- **Estilo:** Moderno, minimalista, "high-tech" com efeitos de vidro (glassmorphism) e componentes animados.
+## Marco Atual
+O foco atual nao e mais construir o MVP base, e sim:
+- consolidar a organizacao da base
+- manter a documentacao alinhada ao executado
+- separar artefatos divergentes para revisao
+- preservar preparacao futura para Supabase
 
-## Principais Funcionalidades (Referência Softdesk)
-- Abertura multicanal (Email, Portal, Mobile)
-- Gestão ITIL (Incidentes, Problemas, Mudanças)
-- SLA dinâmico e controle de prazos
-- Dashboards individuais e gerenciais em tempo real
-- Base de conhecimento integrada
-- Fluxos de aprovação automatizados
-- Sistema Bilíngue
-- Pesquisas de satisfação (NPS e 180)
-- Chat interno para atendimento
-- Gestão de inventário e itens de configuração
+## Linha de Entrega Consolidada
+- Fase 1: fundacao, auth e base do produto
+- Fase 2: core ticketing e workflow base
+- Fase 3: operacao, SLA, dashboard e dual view
+- Fase 4: produto, branding e experiencia
+- Fase 5: fundacao de IA e ferramentas assistidas
+- Fase 6: atendimento operacional por IA
+- Fase 7: dados, seeds e simulacoes
+- Fase 8: estrategia de banco e espelho futuro
+
+## Diretriz Atual
+A base oficial do produto e o frontend/backend presente em `src/`, sustentado por `prisma/schema.prisma`, com planejamento vivo em `.planning/` e triagem de legado em `DIVERGENTES/`.

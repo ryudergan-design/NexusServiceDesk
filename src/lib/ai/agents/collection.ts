@@ -1,5 +1,7 @@
-import { generateText } from 'ai';
+import { generateObject } from 'ai';
 import { models } from '@/lib/ai/config';
+import { buildAIExecutionContext } from '@/lib/ai/context-contract';
+import { CollectionSchema, type CollectionOutput } from '@/lib/ai/schemas';
 import { prisma } from '@/lib/prisma';
 
 export async function runCollectionAgent(input: {
@@ -8,44 +10,35 @@ export async function runCollectionAgent(input: {
   attachments?: string[];
   category?: string;
   userId?: string;
-}) {
+}): Promise<CollectionOutput> {
   const startTime = Date.now();
 
   try {
-    const categoryContext = input.category 
-      ? `O chamado é da categoria: ${input.category}.` 
-      : 'Identifique o contexto do chamado automaticamente.';
-
-    const { text } = await generateText({
-      model: models.fast,
-      system: `Você é um assistente de suporte especializado em garantir que chamados tenham todas as informações necessárias.
-        RESPONDA APENAS EM JSON VÁLIDO.
-        Esquema esperado:
-        {
-          "missingInfo": ["lista de strings"],
-          "questions": ["perguntas diretas"],
-          "isComplete": boolean
-        }`,
-      prompt: `Analise:
-        Título: ${input.title}
-        Descrição: ${input.description}
-        ${categoryContext}
-        
-        Verifique se faltam: passos para reproduzir, erros específicos, documentos ou datas.`,
+    const payload = buildAIExecutionContext({
+      source: 'ticket-collection',
+      ticket: {
+        title: input.title,
+        description: input.description,
+        category: input.category,
+      },
+      attachments: (input.attachments || []).map((name) => ({ name })),
+      instructions: [
+        'Avalie se faltam dados para seguir com o chamado.',
+        'Identifique missingInfo, questions e isComplete.',
+      ],
     });
 
-    // Parser robusto para extrair JSON do texto (caso a IA coloque blocos de markdown)
-    const jsonStr = text.includes('```json') 
-      ? text.split('```json')[1].split('```')[0] 
-      : text;
-    
-    const object = JSON.parse(jsonStr.trim());
+    const { object } = await generateObject({
+      model: models.reasoning,
+      schema: CollectionSchema,
+      system: 'Você garante que o chamado tenha todas as informações necessárias antes de avançar.',
+      prompt: payload,
+    });
 
-    // Log
     await prisma.aILog.create({
       data: {
         agentName: 'collection',
-        input: JSON.stringify(input),
+        input: payload,
         output: JSON.stringify(object),
         latency: Date.now() - startTime,
         userId: input.userId,
@@ -55,11 +48,10 @@ export async function runCollectionAgent(input: {
     return object;
   } catch (error) {
     console.error('Erro na execução do Agente de Coleta:', error);
-    // Fallback amigável: se a IA falhar, deixa o chamado passar como completo para não travar o cliente
     return {
       missingInfo: [],
       questions: [],
-      isComplete: true
+      isComplete: true,
     };
   }
 }

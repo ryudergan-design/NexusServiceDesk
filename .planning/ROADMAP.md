@@ -1,78 +1,76 @@
 # Roadmap: I9 Chamados
 
-## Fase 1: Fundação e Autenticação (Setup Inicial)
-**Objetivo:** Estabelecer a infraestrutura técnica e o controle de acesso básico.
-- [x] Setup do projeto Next.js (Tailwind, Shadcn/UI, Framer Motion).
-- [x] Modelagem do Banco de Dados (Prisma Schema).
-- [x] Configuração do Supabase (Auth e Database).
-- [x] Implementação de Login, Registro e Fluxo de Recuperação de Senha (UI).
-- [x] Layout base do Dashboard (Shell: Sidebar, Header, Perfil).
+## Visao Geral
+O roadmap oficial do projeto foi consolidado em `8 fases` documentadas dentro de `.planning/phase-1-fundacao-auth-base` ate `.planning/phase-8-estrategia-banco-espelho`.
 
-## Fase 1.1: Refinamento e Segurança (Pivot SQLite)
-**Objetivo:** Tornar o sistema funcional com banco de dados SQLite local e segurança.
-- [x] Implementação do CredentialsProvider com bcryptjs.
-- [x] Migração para SQLite Local (Prisma v6).
-- [x] Execução das migrações e Seed do Admin inicial.
-- [x] Ajustes de responsividade Mobile e flash de tema.
+## Fase 1 - Fundacao, Auth e Base do Produto
+Status: concluida
+- setup do projeto
+- autenticacao
+- aprovacao de usuario
+- shell base da aplicacao
 
-## Fase 2: Ciclo de Vida do Chamado (Core Ticketing)
-**Objetivo:** Permitir a criação, tramitação e fechamento de chamados.
+## Fase 2 - Core Ticketing e Workflow Base
+Status: concluida
+- abertura de chamados
+- listagem e detalhe
+- comentarios e transicoes
+- atribuicao e estados operacionais
 
-- [x] Formulário de abertura de chamados (Web).
-- [x] Lista de chamados com filtros e busca rápida.
-- [x] Detalhes do chamado: Histórico de interações (comentários), Anexos e Mudança de Status.
-- [x] Lógica de priorização e atribuição automática básica.
-- [x] Sistema de categorias e subcategorias (Incidentes vs. Requisições).
+## Fase 3 - Operacao, SLA, Dashboard e Dual View
+Status: concluida
+- SLA
+- dashboard principal
+- Desk e Kanban
+- filas privadas e supervisao
+- otimizacao de renderizacao da central
 
-## Fase 3: SLAs e Dashboards (Inteligência Operacional)
-**Objetivo:** Controlar prazos e oferecer visibilidade em tempo real.
+## Fase 4 - Produto, Branding e Experiencia
+Status: concluida
+- branding `Nexus ServiceDesk`
+- home
+- login e cadastro
+- polimento high-tech e copy
 
-- [x] Implementação do motor de SLA (Cálculo de prazos baseado em prioridade).
-- [x] Widgets do Dashboard do Atendente (Contadores, Atividades Recentes).
-- [x] Dashboard do Gestor com gráficos (Recharts: Volume por categoria, Status SLA).
-- [x] Sistema de Notificações In-app e por E-mail (Resumo de ações).
+## Fase 5 - Fundacao de IA e Ferramentas Assistidas
+Status: concluida
+- infraestrutura de IA
+- robos gerenciaveis
+- atribuicao para IA
+- Magic Compose contextual
 
-## Fase 3.1: Refinamentos Operacionais (Polimento do MVP)
-**Objetivo:** Ajustar fluxos fora do escopo inicial para o lançamento da Versão 1.0.0.
+## Fase 6 - Atendimento Operacional por IA
+Status: concluida
+- Gemini no atendimento real
+- workflow operacional por IA
+- escalonamento para atendente
+- datas planejadas e leitura operacional
 
-- [x] Numeração Sequencial de Chamados (migração de cuid para Int).
-- [x] Fluxo de Encaminhamento de Chamados entre atendentes.
-- [x] Obrigatoriedade de Triagem antes de Aprovação/Resolução.
-- [x] Redirecionamento automático para a Pesquisa de Satisfação via Notificações.
-- [x] Correções de estabilidade no Dashboard (`toString()` de undefined).
-- [x] Atualização de Seed de Usuários (Configuração de senhas e perfis padrão).
+## Fase 7 - Dados, Seeds e Simulacoes
+Status: concluida
+- seeds realistas
+- fila simulada de chamados
+- interacoes historicas prontas
+- rodada documentada de processamento por IA
 
-## Fase 4: Reestruturação Visual e Triagem Rápida (Softdesk Layout)
-**Objetivo:** Consolidar a experiência de uso profissional com o Modo Desk e alternância Kanban.
+## Fase 8 - Estrategia de Banco e Espelho Futuro
+Status: concluida
+- `SQLite` como base oficial
+- espelho estrutural para `Supabase/PostgreSQL`
+- verificacao de defasagem
+- fluxo de manutencao documentado
 
-- [x] Implementação da lógica de alternância (Toggle) Kanban vs. Desk.
-- [x] Criação do componente `DeskView` (Tabela de alta densidade).
-- [x] Implementação do `QuickView` (Painel lateral/Split View para detalhes).
-- [x] Refatoração da Barra Lateral para Filtros Rápidos dinâmicos.
-- [x] Persistência de preferência de visualização por usuário.
+## Mapa de Absorcao Historica
+- Nova fase 1 absorve a antiga `phase-1`
+- Nova fase 2 absorve a antiga `phase-2` e a parte operacional da antiga `phase-7`
+- Nova fase 3 absorve as antigas `phase-3`, `phase-4` e `phase-11`
+- Nova fase 4 absorve a antiga `phase-6` e a parte visual da antiga `phase-7`
+- Nova fase 5 absorve as antigas `phase-5`, `phase-8` e `phase-12`
+- Nova fase 6 absorve as antigas `phase-9`, `phase-10` e `phase-13`
+- Nova fase 7 absorve a parte de seeds e simulacoes da antiga `phase-7` e os relatorios operacionais posteriores
+- Nova fase 8 absorve a antiga `phase-14`
 
-## Fase 5: IA Agentica e RAG (V1.1 - Automação Inteligente)
-**Objetivo:** Automatizar a triagem, coleta de dados e auxiliar na resolução usando Agentes de IA e RAG no SQLite.
-
-**Plans:** 4 planos
-- [x] 05-01-PLAN.md — Infraestrutura de IA, FTS5 e Contratos Zod.
-- [x] 05-02-PLAN.md — Implementação dos Agentes de Triagem, Coleta e Engine de RAG.
-- [x] 05-03-PLAN.md — Agentes Solucionador, Curadoria e Backend de Sentimento NPS.
-- [x] 05-04-PLAN.md — Componentes de UI (Insight Card, Magic Compose, Chat) e Dashboard NPS.
-
-## Fase 6: Polimento Final e Deploy (Produção)
-**Objetivo:** Garantir uma UX excepcional, alta performance e preparação para o ambiente de produção.
-
-- [ ] Polimento de UI: Animações complexas (Framer Motion), transições e micro-interações.
-- [ ] Otimização de Performance (Core Web Vitals) e SEO básico.
-  - [ ] Otimizar fontes via `next/font/google` com `display: swap`.
-  - [ ] Implementar `next/image` para melhor compressão e carregamento preguiçoso.
-  - [ ] Configurar `next.config.mjs` com compressão e headers de segurança.
-- [ ] Auditoria Final de Segurança, Tratamento de Erros e Persistência (SQLite).
-- [ ] Landing Page institucional do I9 Chamados.
-- [ ] Deploy em produção (Vercel ou Self-Hosted via Docker).
-
-## Princípios Arquiteturais (Core)
-- **SQLite como única fonte de verdade:** Todos os dados, desde configurações de UI até logs de acesso, devem ser persistidos no banco local.
-- **Gestão de Imagens:** Nenhuma imagem deve existir sem um link correspondente na tabela `Attachment`.
-- **Registro de Tudo:** Cada execução crítica (login, erro, mudança de regra) deve gerar uma linha em tabela organizada de log.
+## Estado Atual do Roadmap
+- Fases documentadas: `8`
+- Base ativa: consolidada
+- Foco atual: organizacao, alinhamento documental e triagem de divergentes

@@ -1,0 +1,7 @@
+{
+  "source": "prisma/schema.prisma",
+  "mirror": "BANCO_DE_DADOS/SUPABASE/prisma/schema.supabase.prisma",
+  "sourceHash": "e45924fb6dc44c3f1d239e09d7bd716567637d5b57e3d8eccc62a356994aaca1",
+  "mirrorHash": "54557eb322b3db26344497c33c205dc1ae91a3dc4d86cc8db715eaba7ba6d8d5",
+  "updatedAt": "2026-03-15T04:34:19.325Z"
+}

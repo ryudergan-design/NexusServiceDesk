@@ -2,12 +2,11 @@ import { auth } from "@/auth"
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
-  const activeRole = (req.auth?.user as any)?.activeRole
   const { nextUrl } = req
   
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth")
-  const isPublicRoute = ["/", "/auth/login", "/auth/register"].includes(nextUrl.pathname)
-  const isAuthRoute = ["/auth/login", "/auth/register"].includes(nextUrl.pathname)
+  const isAuthRoute = nextUrl.pathname.startsWith("/auth")
+  const isPublicRoute = nextUrl.pathname === "/" || isAuthRoute || isApiAuthRoute
   const isAdminRoute = nextUrl.pathname.startsWith("/dashboard/admin")
   
   if (isApiAuthRoute) return undefined
@@ -25,15 +24,10 @@ export default auth((req) => {
     return Response.redirect(new URL(`/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}`, nextUrl))
   }
 
-  // Proteção Extra: Se logado como USER (ou modo Solicitante), bloqueia rotas ADMIN
-  if (isLoggedIn && isAdminRoute && activeRole === "USER") {
-    return Response.redirect(new URL("/dashboard", nextUrl))
-  }
-  
   return undefined
 })
 
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 }
 

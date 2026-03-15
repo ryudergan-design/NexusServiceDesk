@@ -60,6 +60,7 @@ import { cn } from "@/lib/utils"
 import { DatePicker } from "@/components/ui/date-picker"
 import { AIInsightCard } from "@/components/ai/AIInsightCard"
 import { MagicCompose } from "@/components/ai/MagicCompose"
+import { isClosedTicketStatus } from "@/lib/ticket-status"
 
 const statusLabels: Record<string, string> = {
   NEW: "Novo",
@@ -67,6 +68,7 @@ const statusLabels: Record<string, string> = {
   DEVELOPMENT: "Desenvolvimento",
   TEST: "Em Teste",
   COMPLETED: "Concluído",
+  RESOLVED: "Concluído",
   PENDING_USER: "Pendente Cliente",
   AWAITING_APPROVAL: "Aguardando Aprovação"
 }
@@ -239,10 +241,10 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
   const canApprove = isRequester && activeRole === "USER" && ticket?.status === "AWAITING_APPROVAL"
   
   const isSurveyExpired = React.useMemo(() => {
-    if (!ticket || ticket.status !== "COMPLETED") return false
+    if (!ticket || !isClosedTicketStatus(ticket.status)) return false
     return (new Date().getTime() - new Date(ticket.updatedAt).getTime()) > 3 * 24 * 60 * 60 * 1000
   }, [ticket])
-  const canSurvey = isRequester && activeRole === "USER" && ticket?.status === "COMPLETED" && !isSurveyExpired
+  const canSurvey = isRequester && activeRole === "USER" && isClosedTicketStatus(ticket?.status) && !isSurveyExpired
 
   const triggerStatusAnimation = (status: string) => {
     setTransitionStatus(statusLabels[status] || status)
@@ -253,6 +255,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
   const handleStatusButtonClick = (status: string) => {
     if (status === "AWAITING_APPROVAL") { setIsApprovalDialogOpen(true); return }
     setPendingStatus(status); if (status === "PENDING_USER") setIsInternal(false)
+    toast.info(`Descreva a atividade abaixo para alterar o status para ${statusLabels[status] || status}.`)
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "center" })
   }
 
@@ -330,7 +333,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
           <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-[425px] rounded-2xl">
             <DialogHeader><DialogTitle className="flex items-center gap-2"><UserPlus className="h-5 w-5 text-indigo-400" /> Encaminhar</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-              {staffUsers.filter(u => u.id !== session?.user?.id).map((staff) => (
+              {staffUsers.filter(u => u.id !== session?.user?.id && !u.isAI).map((staff) => (
                 <button key={staff.id} onClick={() => handleForward(staff.id)} className="w-full flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5 hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all text-left group">
                   <div><div className="text-sm font-bold group-hover:text-indigo-400">{staff.name}</div><div className="text-[10px] text-white/40">{staff.email}</div></div>
                   <Badge variant="outline" className="text-[9px] uppercase opacity-50">{staff.role}</Badge>
@@ -379,10 +382,10 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                       {ticket.status === "PENDING_USER" && <Button onClick={() => handleStatusButtonClick("TRIAGE")} variant="outline" className="border-primary/30 text-primary h-10 px-4 font-black uppercase text-[11px] tracking-widest"><Zap className="h-4 w-4 mr-2" /> Retomar Atendimento</Button>}
                     </>
                   )}
-                  {ticket.status !== "NEW" && ticket.status !== "COMPLETED" && ticket.status !== "TEST" && ticket.status !== "AWAITING_APPROVAL" && ticket.status !== "PENDING_USER" && (
+                  {ticket.status !== "NEW" && !isClosedTicketStatus(ticket.status) && ticket.status !== "TEST" && ticket.status !== "AWAITING_APPROVAL" && ticket.status !== "PENDING_USER" && (
                     <Button variant="outline" onClick={() => handleStatusButtonClick("COMPLETED")} className="border-emerald-500/30 text-emerald-500 h-10 px-4 font-black uppercase text-[11px] tracking-widest hidden sm:flex">Resolver</Button>
                   )}
-                  {ticket.status !== "COMPLETED" && (
+                  {!isClosedTicketStatus(ticket.status) && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-10 w-10 border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"><MoreHorizontal className="h-5 w-5 text-white/70" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-64 bg-slate-950 border-white/10 text-white shadow-2xl p-2 rounded-2xl">
@@ -453,7 +456,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                     </div>
 <div className="flex flex-col sm:flex-row justify-between items-center gap-6"><div className="flex gap-6"><div className="flex items-center gap-3"><input type="checkbox" id="isInternal" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} className="h-5 w-5 rounded border-white/10 bg-black/40 text-primary" /><Label htmlFor="isInternal" className="text-xs font-black uppercase tracking-widest text-white/40 flex items-center gap-2">Privada <Lock className="h-3 w-3" /></Label></div><div className="flex items-center gap-3"><Label className="text-xs font-black uppercase tracking-widest text-white/40">Minutos:</Label><Input type="number" min="0" className="w-20 h-10 bg-black/40 border-white/10 text-xs font-bold text-center" value={timeSpent} onChange={(e) => setTimeSpent(e.target.value)} /><Button type="button" variant="outline" size="icon" onClick={pasteTime} className="h-10 w-10 border-white/10"><History className="h-4 w-4" /></Button></div></div><Button type="submit" disabled={isSubmitting || !comment.trim()} className="bg-primary hover:bg-primary/80 h-11 px-8 font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-primary/20">Registrar</Button></div></form></CardContent>
               </Card>
-            ) : (ticket.status !== "COMPLETED" && (
+            ) : (!isClosedTicketStatus(ticket.status) && (
               <Card className="border-white/10 bg-white/[0.03] border-dashed rounded-3xl overflow-hidden shadow-xl">
                 <CardHeader className="bg-white/5 py-4 px-6">
                   <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] flex items-center justify-between text-white/40">
@@ -489,7 +492,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                     <div className={cn("flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-950 border-2 z-10", item.timelineType === "transition" ? "border-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "border-white/20")}>{item.timelineType === "transition" ? <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" /> : <MessageSquare className={cn("h-3 w-3", item.isInternal ? "text-amber-500" : "text-white/40")} />}</div>
                     <div className={cn("flex-1 pt-0.5 transition-all", item.isInternal ? "bg-amber-500/[0.03] p-6 rounded-2xl border border-amber-500/10" : "")}>
                       <div className="flex items-center justify-between gap-4 mb-3"><div className="text-[11px] font-black uppercase tracking-widest text-white/80">{(item.performedBy || item.author).name}{item.timelineType === "transition" ? <span className="font-bold text-white/30"> » MUDOU PARA {statusLabels[item.toStatus]}</span> : <span className="font-bold text-white/30"> » RESPONDEU</span>}</div><time className="text-[9px] font-black text-white/20 uppercase tabular-nums">{new Date(item.createdAt).toLocaleString()}</time></div>
-                      {item.content || item.comment ? (<div className="text-[13px] font-medium text-white/60 leading-relaxed"><RichTextRenderer content={item.content || item.comment} />{item.timelineType === "transition" && item.toStatus === "COMPLETED" && activeRole === "USER" && !ticket.survey && !isSurveyExpired && (<div className="mt-6"><Button onClick={() => setIsSurveyDialogOpen(true)} className="bg-amber-500 hover:bg-amber-600 h-8 px-4 text-[10px] font-black uppercase tracking-widest gap-2 rounded-lg shadow-lg shadow-amber-900/20"><Star className="h-3 w-3 fill-current" /> Avaliar Agora</Button></div>)}</div>) : null}
+                      {item.content || item.comment ? (<div className="text-[13px] font-medium text-white/60 leading-relaxed"><RichTextRenderer content={item.content || item.comment} />{item.timelineType === "transition" && isClosedTicketStatus(item.toStatus) && activeRole === "USER" && !ticket.survey && !isSurveyExpired && (<div className="mt-6"><Button onClick={() => setIsSurveyDialogOpen(true)} className="bg-amber-500 hover:bg-amber-600 h-8 px-4 text-[10px] font-black uppercase tracking-widest gap-2 rounded-lg shadow-lg shadow-amber-900/20"><Star className="h-3 w-3 fill-current" /> Avaliar Agora</Button></div>)}</div>) : null}
                     </div>
                   </div>
                 ))}

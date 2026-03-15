@@ -6,7 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run db:mirror:check",
+    "db:mirror:check": "node scripts/supabase-mirror-check.mjs check",
+    "db:mirror:update": "node scripts/supabase-mirror-check.mjs update",
+    "db:mirror:validate": "prisma validate --schema BANCO_DE_DADOS/SUPABASE/prisma/schema.supabase.prisma"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -15,6 +20,7 @@
     "@ai-sdk/google": "^3.0.43",
     "@ai-sdk/openai": "^3.0.41",
     "@auth/prisma-adapter": "^2.11.1",
+    "@google/genai": "^1.45.0",
     "@hookform/resolvers": "^5.2.2",
     "@libsql/client": "^0.17.0",
     "@prisma/adapter-libsql": "^7.5.0",

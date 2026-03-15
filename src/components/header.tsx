@@ -59,7 +59,10 @@ export function Header() {
       const data = await res.json()
       setNotifications(Array.isArray(data) ? data : [])
       setUnreadCount(Array.isArray(data) ? data.filter((n: any) => !n.read).length : 0)
-    } catch (e) {}
+    } catch (e) {
+      console.error("Erro ao buscar notificações:", e)
+      toast.error("Não foi possível carregar as notificações.")
+    }
   }
 
   useEffect(() => {
@@ -87,7 +90,16 @@ export function Header() {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
           <input
             placeholder="Pesquisar chamados..."
+            aria-label="Pesquisar chamados por ID ou título"
             className="w-64 rounded-full border border-white/10 bg-white/5 py-2 pl-10 pr-4 text-sm text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const term = (e.target as HTMLInputElement).value;
+                if (term) {
+                  router.push(`/dashboard/tickets?search=${encodeURIComponent(term)}`);
+                }
+              }
+            }}
           />
         </div>
       </div>
@@ -96,7 +108,10 @@ export function Header() {
         {/* Notificações */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="relative rounded-full p-2 text-white/60 transition-colors hover:bg-white/5 hover:text-white">
+            <button 
+              aria-label="Ver notificações"
+              className="relative rounded-full p-2 text-white/60 transition-colors hover:bg-white/5 hover:text-white"
+            >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary animate-pulse" />

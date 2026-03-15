@@ -1,64 +1,72 @@
 # Requisitos: I9 Chamados
 
-## Requisitos Funcionais (RF)
+## Escopo Atual Consolidado
+Este documento reflete o que o projeto considera como base funcional atual apos a reorganizacao em `8 fases`.
 
-### RF01 - Gestão de Acesso e Autenticação
-- O sistema deve suportar múltiplos perfis: Solicitante (Usuário), Atendente (Agente) e Gestor (Admin).
-- Autenticação via Supabase Auth (Email/Senha e integração com AD/Google futuramente).
-- Recuperação de senha e controle de sessão segura.
+## Requisitos Funcionais
 
-### RF02 - Abertura e Gestão de Chamados
-- Suporte a múltiplos canais: Portal Web (Responsivo), E-mail (Inbound) e Mobile App.
-- Campos obrigatórios: Título, Descrição, Categoria, Prioridade e Anexos.
-- Atribuição automática de chamados baseada em filas ou carga de trabalho.
-- Histórico completo de interações e log de auditoria por chamado.
+### RF01 - Acesso e Perfis
+- O sistema deve suportar perfis de `Cliente`, `Atendente` e `Administrador`.
+- O login deve funcionar com `Auth.js` e credenciais locais.
+- O sistema deve controlar permissao por papel e contexto de tela.
 
-### RF03 - Gestão de SLA e Prazos
-- Definição de níveis de serviço (SLA) baseados na prioridade e categoria.
-- Contador regressivo visual nos dashboards para cada chamado.
-- Alertas automáticos para gestores em caso de iminência de violação de SLA.
+### RF02 - Abertura e Gestao de Chamados
+- O sistema deve permitir abrir chamados com `titulo`, `descricao`, `tipo` e `categoria`.
+- O sistema deve permitir listar, filtrar, visualizar e atualizar chamados.
+- O sistema deve manter historico de comentarios, anexos e transicoes.
+- O sistema deve suportar atribuicao entre atendentes e atribuicao para IA.
 
-### RF04 - Dashboards e Relatórios
-- **Dashboard do Atendente:** Visão individual de chamados ativos, prazos e métricas pessoais.
-- **Dashboard do Gestor:** Visão macro da operação, gargalos, performance da equipe e conformidade global de SLA.
-- Gráficos dinâmicos com filtros por data, categoria, agente e departamento.
+### RF03 - Fluxo Operacional
+- O sistema deve suportar workflow com estados operacionais do atendimento.
+- O sistema deve permitir triagem, desenvolvimento, testes, aprovacao e encerramento.
+- O sistema deve aceitar os estados `COMPLETED` e `RESOLVED` como encerramento valido no ecossistema atual.
 
-### RF05 - Base de Conhecimento e Autoatendimento
-- Repositório de artigos, tutoriais e FAQs pesquisáveis.
-- Sugestão automática de artigos ao abrir um novo chamado baseado no título/descrição.
-- Portal do solicitante com status de chamados em tempo real.
+### RF04 - Visualizacao Dual
+- O sistema deve oferecer `Modo Kanban` e `Modo Desk`.
+- A preferencia de visualizacao deve ser persistida.
+- A fila de `Sem atendente` deve funcionar nos dois modos.
+- No Kanban geral da equipe, devem aparecer apenas chamados novos sem atendente e tickets do proprio atendente, salvo filtro explicito.
 
-### RF06 - Automação e Fluxos ITIL
-- Gestão de Incidentes (Restauração rápida) e Requisições (Pedidos padrão).
-- Fluxo de aprovação configurável para requisições de serviço.
-- Notificações automáticas por e-mail e push em cada mudança de status.
+### RF05 - Dashboards e Visao de Atendimento
+- O sistema deve exibir visoes diferentes para cliente e equipe.
+- O sistema deve apresentar indicadores de SLA, carga de tickets e fluxo operacional.
+- O sistema deve permitir acompanhar filas de outros atendentes e de IAs por navegacao explicita.
+- O dashboard principal autenticado deve refletir o padrao visual high-tech atual do produto.
+- O dashboard principal autenticado deve oferecer uma area dedicada para leitura operacional da IA.
+- A home deve exibir um painel visual de apresentacao coerente com o workflow real do produto.
 
-### RF07 - Pesquisa de Satisfação (NPS/180)
-- Envio automático de pesquisa NPS após fechamento do chamado.
-- Pesquisa 180: O atendente pode avaliar o comportamento/clareza do solicitante.
+### RF06 - IA no Atendimento
+- O sistema deve permitir cadastrar usuarios marcados como IA.
+- O sistema deve permitir atribuir chamados a robos configurados.
+- A IA deve responder no chamado, registrar log e poder escalar para um `Atendente`.
+- A IA nao deve devolver o chamado para fila sem responsavel quando decidir escalar.
+- Em escalonamento, deve existir mensagem publica para o cliente e nota interna para a equipe.
+- A IA deve pensar no workflow operacional completo do chamado, incluindo triagem, desenvolvimento, testes, aprovacao de orcamento, retorno ao cliente e encerramento.
+- Quando a IA depender de resposta, confirmacao ou evidencia do cliente, o chamado deve ir para `PENDING_USER`.
+- Quando o cliente responder um chamado em `PENDING_USER`, o fluxo deve permitir retorno operacional para `TRIAGE`.
+- A IA pode sugerir `plannedStartDate` e `plannedDueDate` quando houver contexto suficiente.
+- Se a IA nao conseguir definir datas validas, o sistema deve manter o fallback automatico atual.
 
-### RF08 - Reestruturação Visual (Dual View)
-- O sistema deve oferecer um controle de alternância (toggle) entre **Modo Kanban** e **Modo Desk (Lista)**.
-- O **Modo Kanban** deve exibir os chamados em colunas por status (estilo Trello/Jira).
-- O **Modo Desk** deve exibir os chamados em uma tabela de alta densidade com colunas customizáveis (ID, Título, Categoria, Solicitante, SLA).
-- No **Modo Desk**, ao selecionar um chamado, os detalhes devem ser exibidos em um painel lateral (Drawer) ou divisão de tela (Split View) para manter o contexto da lista.
-- A preferência de visualização do usuário (Kanban ou Desk) deve ser persistida localmente ou no perfil.
+### RF07 - Magic Compose
+- O Magic Compose deve refinar respostas no historico do ticket.
+- Na abertura de chamado, o Magic Compose deve exigir `titulo`, `tipo de chamado`, `categoria` e `descricao` com pelo menos `20 caracteres`.
+- Na abertura, o texto deve ser gerado na voz do cliente.
 
-## Requisitos Não Funcionais (RNF)
+### RF08 - Banco e Estrutura de Dados
+- O banco oficial do projeto deve continuar sendo `SQLite` com `Prisma`.
+- O projeto deve manter um espelho estrutural para `Supabase/PostgreSQL`.
+- Toda mudanca relevante no schema oficial deve ser revisada contra o espelho.
 
-### RNF01 - Performance e Disponibilidade
-- Tempo de carregamento de páginas inicial < 2s.
-- Sistema 100% SaaS com alta disponibilidade (Uptime 99.9%).
+## Requisitos Nao Funcionais
 
-### RNF02 - Segurança
-- Comunicação criptografada (SSL/TLS).
-- Controle de permissões baseado em papéis (RBAC).
+### RNF01 - Compatibilidade de Estrutura
+- A organizacao da base nao deve quebrar o `Next.js`, `Prisma` ou o fluxo `GSD`.
+- Documentacao humana pode ser reorganizada, mas runtime e planejamento vivo devem permanecer compativeis.
 
-### RNF03 - Interface (UI/UX)
-- Design Dark Mode nativo com estética moderna (Shadcn + Framer Motion).
-- Responsividade total para desktops, tablets e smartphones.
-- Componentes animados para transições de status e carregamento de dados.
+### RNF02 - Experiencia
+- A interface deve ser responsiva em desktop e mobile.
+- O visual deve seguir a linguagem moderna e high-tech consolidada no projeto.
 
-## Escopo e Limites
-- **Dentro do Escopo:** MVP com Gestão de Incidentes, Requisições, Dashboard e SLA.
-- **Fora do Escopo Inicial:** Integração com dispositivos de hardware (sensores) e Chatbot de IA Avançado (ficará para fases futuras).
+### RNF03 - Rastreabilidade
+- O planejamento em `.planning/` deve refletir a evolucao consolidada do projeto.
+- Artefatos fora do fluxo principal devem ser separados para triagem em `DIVERGENTES/`.

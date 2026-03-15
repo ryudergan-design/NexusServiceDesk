@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils"
 import { signOut, useSession } from "next-auth/react"
 import { useEffect, useState } from "react"
 import { getNavCounts } from "@/lib/actions/nav"
+import { toast } from "sonner"
 
 export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
   const pathname = usePathname()
@@ -28,7 +29,8 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
   const { data: session } = useSession()
   const [counts, setCounts] = useState<any>(null)
   const [showTicketsMenu, setShowTicketsMenu] = useState(true)
-  const [showAgents, setShowAgents] = useState(false)
+  const [showStaff, setShowStaff] = useState(false)
+  const [showAIs, setShowAIs] = useState(false)
   const [agents, setAgents] = useState<any[]>([])
   const [viewMode, setViewMode] = useState<string>("kanban")
 
@@ -38,12 +40,21 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
   const isStaffMode = activeRole === "ADMIN" || activeRole === "AGENT"
 
   useEffect(() => {
-    getNavCounts().then(setCounts)
+    getNavCounts()
+      .then(setCounts)
+      .catch(e => {
+        console.error("Erro ao carregar contadores:", e)
+        toast.error("Erro ao sincronizar indicadores.")
+      })
     
     if (isStaffMode) {
       fetch("/api/users/staff")
         .then(res => res.json())
         .then(data => setAgents(Array.isArray(data) ? data : []))
+        .catch(e => {
+          console.error("Erro ao carregar agentes:", e)
+          toast.error("Erro ao carregar lista de atendentes.")
+        })
     }
     
     // Sincronizar viewMode com localStorage
@@ -54,16 +65,17 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
 
     updateViewMode()
     window.addEventListener("storage", updateViewMode)
-    // Pequeno hack para detectar mudança no mesmo tab
-    const interval = setInterval(updateViewMode, 1000)
+    window.addEventListener("i9-view-mode-change", updateViewMode)
 
     return () => {
       window.removeEventListener("storage", updateViewMode)
-      clearInterval(interval)
+      window.removeEventListener("i9-view-mode-change", updateViewMode)
     }
-  }, [pathname, view, activeRole])
+  }, [pathname, view, activeRole, isStaffMode])
 
   const showFilters = viewMode === "desk" && pathname.includes("/tickets")
+  const humanAgents = agents.filter((a: any) => !a.isAI && a.id !== user?.id)
+  const aiAgents = agents.filter((a: any) => a.isAI)
 
   const handleSignOut = async () => {
     await signOut({ 
@@ -114,22 +126,22 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
           Chamados
         </Link>
 
-        {/* Outros Atendentes (Staff only) */}
+        {/* Atendentes / IAs (Staff only) */}
         {isStaffMode && (
           <div className="pt-2">
             <button 
-              onClick={() => setShowAgents(!showAgents)}
-              className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/30 hover:text-white/50 transition-colors"
+              onClick={() => setShowStaff(!showStaff)}
+              aria-label={showStaff ? "Recolher menu de atendentes" : "Expandir menu de atendentes"}
+              aria-expanded={showStaff}
+              className="flex w-full items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider text-white/30 hover:text-white/50 transition-colors"
             >
-              Outros Atendentes
-              <ChevronDown className={cn("h-3 w-3 transition-transform", !showAgents && "-rotate-90")} />
+              Atendentes
+              <ChevronDown className={cn("h-3 w-3 transition-transform", !showStaff && "-rotate-90")} />
             </button>
             
-            {showAgents && (
+            {showStaff && (
               <div className="mt-1 space-y-1">
-                {agents
-                  .filter((a: any) => a.id !== user?.id)
-                  .map((agent: any) => (
+                {humanAgents.map((agent: any) => (
                     <Link
                       key={agent.id}
                       href={`/dashboard/tickets?agentId=${agent.id}`}
@@ -154,11 +166,52 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
           </div>
         )}
 
+        {isStaffMode && (
+          <div className="pt-1">
+            <button 
+              onClick={() => setShowAIs(!showAIs)}
+              aria-label={showAIs ? "Recolher menu de IAs" : "Expandir menu de IAs"}
+              aria-expanded={showAIs}
+              className="flex w-full items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider text-white/30 hover:text-white/50 transition-colors"
+            >
+              IAs
+              <ChevronDown className={cn("h-3 w-3 transition-transform", !showAIs && "-rotate-90")} />
+            </button>
+
+            {showAIs && (
+              <div className="mt-1 space-y-1">
+                {aiAgents.map((agent: any) => (
+                    <Link
+                      key={agent.id}
+                      href={`/dashboard/tickets?agentId=${agent.id}`}
+                      onClick={onItemClick}
+                      className={cn(
+                        "group flex items-center justify-between rounded-lg px-3 py-2 text-[12px] font-medium transition-all",
+                        searchParams.get("agentId") === agent.id
+                          ? "bg-primary/10 text-primary" 
+                          : "text-white/60 hover:bg-white/5 hover:text-white"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="h-6 w-6 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 group-hover:border-primary/30 transition-colors">
+                          <Users className="h-3.5 w-3.5" />
+                        </div>
+                        <span className="truncate max-w-[140px]">{agent.name}</span>
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Menu de Chamados (Equipe Técnica) - Só aparece no modo Desk */}
         {isStaffMode && showFilters && (
           <div className="pt-4 pb-2">
             <button 
               onClick={() => setShowTicketsMenu(!showTicketsMenu)}
+              aria-label={showTicketsMenu ? "Recolher menu de gestão de atendimento" : "Expandir menu de gestão de atendimento"}
+              aria-expanded={showTicketsMenu}
               className="flex w-full items-center justify-between px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white/30 hover:text-white/50 transition-colors"
             >
               Gestão de Atendimento
@@ -362,10 +415,21 @@ export function SidebarContent({ onItemClick }: { onItemClick?: () => void }) {
                 <Users className="h-5 w-5" />
                 Gestão de Usuários
               </Link>
-            )}
-          </div>
-        </div>
-      </nav>
-    </div>
-  )
-}
+              )}
+
+              <button
+              onClick={() => {
+                if (onItemClick) onItemClick();
+                handleSignOut();
+              }}
+              className="group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-destructive/60 transition-all hover:bg-destructive/10 hover:text-destructive"
+              >
+              <LogOut className="h-5 w-5" />
+              Encerrar Sessão
+              </button>
+              </div>
+              </div>
+              </nav>
+              </div>
+              )
+              }

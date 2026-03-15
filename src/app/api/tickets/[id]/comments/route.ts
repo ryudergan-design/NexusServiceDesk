@@ -16,17 +16,20 @@ export async function POST(
     const { id } = await params
     const ticketId = parseInt(id)
     const body = await req.json()
-    const { content, isInternal, timeSpent } = body
+    const { content, isInternal, isPrivate, timeSpent } = body
 
     const user = session.user as any
     const isClient = user.role === "USER"
 
     const comment = await prisma.$transaction(async (tx) => {
+      const internalFlag = isClient ? false : !!isInternal
+      const privateFlag = isClient ? false : (isPrivate !== undefined ? !!isPrivate : internalFlag)
+
       const newComment = await tx.ticketComment.create({
         data: {
           content,
-          isInternal: isClient ? false : !!isInternal,
-          isPrivate: isClient ? false : !!isInternal,
+          isInternal: internalFlag,
+          isPrivate: privateFlag,
           timeSpent: parseInt(timeSpent) || 0,
           ticketId,
           authorId: user.id

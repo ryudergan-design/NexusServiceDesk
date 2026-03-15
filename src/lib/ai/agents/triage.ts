@@ -1,35 +1,42 @@
 import { generateObject } from 'ai';
 import { models } from '@/lib/ai/config';
+import { buildAIExecutionContext } from '@/lib/ai/context-contract';
 import { TriageSchema, type TriageOutput } from '@/lib/ai/schemas';
 import { prisma } from '@/lib/prisma';
 
-/**
- * Agente de Triagem: Classifica novos chamados usando Groq/Llama 3.3.
- */
-export async function runTriageAgent(ticket: { title: string; description: string; userId?: string }): Promise<TriageOutput> {
+export async function runTriageAgent(ticket: {
+  title: string;
+  description: string;
+  userId?: string;
+}): Promise<TriageOutput> {
   const startTime = Date.now();
-  
+
   try {
-    const { object } = await generateObject({
-      model: models.fast,
-      schema: TriageSchema,
-      prompt: `Você é um especialista em triagem de chamados de suporte técnico e processos corporativos.
-        Analise o seguinte chamado:
-        Título: ${ticket.title}
-        Descrição: ${ticket.description}
-        
-        Classifique o chamado fornecendo a categoria, prioridade, urgência, impacto, um resumo executivo e se parece ser um problema interno.`,
+    const payload = buildAIExecutionContext({
+      source: 'ticket-triage',
+      ticket: {
+        title: ticket.title,
+        description: ticket.description,
+      },
+      instructions: [
+        'Classifique categoria, prioridade, urgência, impacto, resumo executivo e se parece um problema interno.',
+        'Responda estritamente no schema estruturado.',
+      ],
     });
 
-    const duration = Date.now() - startTime;
+    const { object } = await generateObject({
+      model: models.reasoning,
+      schema: TriageSchema,
+      system: 'Você é um especialista em triagem de chamados de suporte técnico e processos corporativos.',
+      prompt: payload,
+    });
 
-    // Log da execução na tabela AILog
     await prisma.aILog.create({
       data: {
         agentName: 'triage',
-        input: JSON.stringify(ticket),
+        input: payload,
         output: JSON.stringify(object),
-        latency: duration,
+        latency: Date.now() - startTime,
         userId: ticket.userId,
       },
     });

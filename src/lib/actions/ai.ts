@@ -3,58 +3,134 @@
 import { auth } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { createOpenAI } from '@ai-sdk/openai';
-import { generateObject, generateText } from 'ai';
+import { generateText } from 'ai';
 import { retrieveKnowledge } from '@/lib/ai/rag/engine';
-import { AIAgentSchema } from '@/lib/ai/schemas';
 import { runCollectionAgent } from '@/lib/ai/agents/collection';
 import { runTriageAgent } from '@/lib/ai/agents/triage';
 import { runSolverAgent } from '@/lib/ai/agents/solver';
+import { GeminiAIService } from '@/lib/ai/gemini-service';
+import { models } from '@/lib/ai/config';
+import { buildAIExecutionContext } from '@/lib/ai/context-contract';
 import type { CollectionOutput, SolverOutput } from '@/lib/ai/schemas';
 
-/**
- * Escala o chamado para um atendente humano real.
- */
-async function escalateToHuman(ticketId: number, agentName: string, reason: string) {
-  const staff = await prisma.user.findFirst({
-    where: { role: { in: ['ADMIN', 'AGENT'] }, isAI: false, approved: true }
+function normalizeAIWorkflowStatus(status: string | undefined, fallback: string) {
+  const upper = (status || '').trim().toUpperCase();
+
+  const aliases: Record<string, string> = {
+    TESTING: 'TEST',
+    BUDGET_APPROVAL: 'AWAITING_APPROVAL',
+  };
+
+  if (aliases[upper]) return aliases[upper];
+
+  const supported = new Set([
+    'NEW',
+    'TRIAGE',
+    'DEVELOPMENT',
+    'TEST',
+    'AWAITING_APPROVAL',
+    'PENDING_USER',
+    'COMPLETED',
+    'RESOLVED',
+  ]);
+
+  return supported.has(upper) ? upper : fallback;
+}
+
+function parseAIPlannedDate(value?: string) {
+  if (!value) return undefined;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+
+  const parsed = new Date(`${value}T12:00:00.000Z`);
+  return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+}
+
+async function escalateToHuman(
+  ticketId: number,
+  agentId: string | undefined,
+  agentName: string,
+  reason: string,
+  preferredAssigneeId?: string,
+  publicResponse?: string
+) {
+  const aiAuthor = agentId
+    ? await prisma.user.findUnique({
+        where: { id: agentId },
+        select: { id: true },
+      })
+    : await prisma.user.findFirst({
+        where: { isAI: true },
+        select: { id: true },
+      });
+  const authorId = aiAuthor?.id;
+
+  const fallbackHuman = await prisma.user.findFirst({
+    where: {
+      id: preferredAssigneeId,
+      approved: true,
+      isAI: false,
+      role: { in: ['ADMIN', 'AGENT'] },
+    },
+    select: { id: true, name: true },
+  }) || await prisma.user.findFirst({
+    where: {
+      approved: true,
+      isAI: false,
+      role: { in: ['ADMIN', 'AGENT'] },
+    },
+    orderBy: { name: 'asc' },
+    select: { id: true, name: true },
   });
 
-  const targetId = staff?.id;
+  if (!fallbackHuman) {
+    throw new Error('Nenhum atendente humano disponivel para receber o chamado.');
+  }
 
   await prisma.ticket.update({
     where: { id: ticketId },
-    data: { assigneeId: targetId || null, status: "TRIAGE" }
+    data: { assigneeId: fallbackHuman.id, status: 'TRIAGE' },
+  });
+
+  if (!authorId) return;
+
+  await prisma.ticketComment.create({
+    data: {
+      ticketId,
+      content: publicResponse?.trim() || 'Encaminhei seu chamado para um Atendente, que vai continuar o atendimento por aqui.',
+      authorId,
+      isInternal: false,
+      isPrivate: false,
+    },
   });
 
   await prisma.ticketComment.create({
     data: {
       ticketId,
-      content: `[IA ESCALAÇÃO] O robô ${agentName} encaminhou para suporte humano.\n\n**Motivo:** ${reason}`,
-      authorId: agentName.includes('Groq') || agentName.includes('Gemini') ? (await prisma.user.findFirst({where: {isAI: true}}))?.id || '' : targetId || '', 
-      isInternal: true
-    }
+      content: `[IA ESCALACAO] O robo ${agentName} encaminhou para um Atendente.\n\n**Responsavel definido:** ${fallbackHuman.name}\n\n**Motivo:** ${reason}`,
+      authorId,
+      isInternal: true,
+      isPrivate: true,
+    },
   });
 }
 
 export async function unassignAIAgent(ticketId: number) {
   const session = await auth();
-  if (!session?.user?.id) throw new Error('Não autorizado');
+  if (!session?.user?.id) throw new Error('Nao autorizado');
 
   await prisma.ticket.update({
     where: { id: ticketId },
-    data: { assigneeId: null }
+    data: { assigneeId: null },
   });
 
   await prisma.ticketTransition.create({
     data: {
       ticketId,
-      fromStatus: "ANY",
-      toStatus: "UNASSIGNED",
-      comment: `Robô removido pelo atendente.`,
-      performedById: (session.user as any).id
-    }
+      fromStatus: 'ANY',
+      toStatus: 'UNASSIGNED',
+      comment: 'Robo removido pelo atendente.',
+      performedById: (session.user as any).id,
+    },
   });
 
   revalidatePath('/dashboard');
@@ -63,153 +139,147 @@ export async function unassignAIAgent(ticketId: number) {
 
 export async function assignToAIAgent(ticketId: number, agentId: string) {
   const session = await auth();
-  if (!session?.user?.id) throw new Error('Não autorizado');
+  if (!session?.user?.id) throw new Error('Nao autorizado');
 
   const userId = (session.user as any).id;
 
-  // 1. Buscar dados completos com HISTÓRICO
   const [ticket, agent, performer] = await Promise.all([
     prisma.ticket.findUnique({
       where: { id: ticketId },
-      include: { 
+      include: {
         requester: true,
-        comments: { include: { author: true }, orderBy: { createdAt: 'asc' } }
-      }
+        category: true,
+        comments: { include: { author: true }, orderBy: { createdAt: 'asc' } },
+      },
     }),
     prisma.user.findUnique({ where: { id: agentId } }),
-    prisma.user.findUnique({ where: { id: userId } })
+    prisma.user.findUnique({ where: { id: userId } }),
   ]);
 
-  if (!ticket) throw new Error('Ticket não encontrado.');
-  if (!agent?.isAI || !agent.aiApiKey) throw new Error('Agente IA não configurado.');
-  if (!performer) throw new Error('Sessão inválida.');
+  if (!ticket) throw new Error('Ticket nao encontrado.');
+  if (!agent?.isAI) throw new Error('Agente IA nao encontrado.');
+  if (!agent.aiApiKey && !process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    throw new Error('Agente IA nao configurado. Cadastre uma API key no agente ou configure a chave global.');
+  }
+  if (!performer) throw new Error('Sessao invalida.');
 
-  const oldStatus = ticket.status;
   const now = new Date();
   const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-  const hour = now.getHours();
-  const greeting = hour < 12 ? "Bom dia" : hour < 18 ? "Boa tarde" : "Boa noite";
+  const previousAssigneeId = ticket.assigneeId;
+  const previousStatus = ticket.status;
 
-  // Formatar histórico para a IA
-  const totalComments = ticket.comments.length;
-  const conversationHistory = ticket.comments
-    .slice(0, -1) // Todos menos o último
-    .map(c => `${c.author.isAI ? '🤖 Robô' : '👤 ' + (c.author.role === 'USER' ? 'Cliente' : 'Atendente')} (${c.author.name}): ${c.content}`)
-    .join("\n\n");
+  console.log(`[AI_PROCESS] Ticket #${ticketId} com ${agent.name} (Analisando nova interacao...)`);
 
-  const latestActivity = ticket.comments[totalComments - 1];
-  const latestStr = latestActivity 
-    ? `[ULTIMA ATIVIDADE] ${latestActivity.author.isAI ? '🤖 Robô' : '👤 ' + (latestActivity.author.role === 'USER' ? 'Cliente' : 'Atendente')} (${latestActivity.author.name}) disse: ${latestActivity.content}`
-    : "Início do chamado.";
-
-  console.log(`[AI_PROCESS] Ticket #${ticketId} com ${agent.name} (Analisando nova interação...)`);
-
-  // 2. Marcar como TRIAGE e Atribuir
   await prisma.ticket.update({
     where: { id: ticketId },
-    data: { 
-      assigneeId: agentId, 
-      status: "TRIAGE",
+    data: {
+      assigneeId: agentId,
+      status: 'TRIAGE',
       plannedStartDate: now,
-      plannedDueDate: tomorrow
-    }
+      plannedDueDate: tomorrow,
+    },
   });
 
   try {
-    const searchQuery = `${ticket.title} ${ticket.description}`;
-    const knowledge = await retrieveKnowledge(searchQuery, 3);
-    const contextStr = knowledge.length > 0 
-      ? knowledge.map(k => `[MANUAL] ${k.title}: ${k.content}`).join("\n")
-      : "Sem manuais técnicos específicos para este caso.";
+    const knowledge = await retrieveKnowledge(`${ticket.title} ${ticket.description}`, 3);
 
-    // 3. Provedor
-    let modelInstance;
-    if (agent.aiModel?.includes('gemini')) {
-      modelInstance = createGoogleGenerativeAI({ apiKey: agent.aiApiKey })(agent.aiModel.replace('models/', ''));
-    } else if (agent.aiModel?.startsWith('cohere/')) {
-      modelInstance = createOpenAI({ baseURL: 'https://api.cohere.com/v1', apiKey: agent.aiApiKey })(agent.aiModel.replace('cohere/', ''));
+    const geminiResult = await GeminiAIService.processTicket({
+      id: ticket.id,
+      title: ticket.title,
+      description: ticket.description,
+      status: ticket.status,
+      priority: ticket.priority,
+      category: ticket.category.name,
+      requester: {
+        name: ticket.requester.name,
+        department: ticket.requester.department,
+      },
+      history: ticket.comments.map((comment) => ({
+        role: comment.author.isAI ? 'assistant' : 'user',
+        content: comment.content,
+      })),
+      knowledgeBase: knowledge.map((item) => ({
+        title: item.title,
+        content: item.content,
+      })),
+    }, agent.id);
+
+    if (geminiResult.requires_human) {
+      await escalateToHuman(
+        ticketId,
+        agent.id,
+        agent.name || 'Agente Gemini',
+        geminiResult.reason,
+        userId,
+        geminiResult.response
+      );
     } else {
-      modelInstance = createOpenAI({ baseURL: 'https://api.groq.com/openai/v1', apiKey: agent.aiApiKey })(agent.aiModel || 'llama-3.3-70b-versatile');
-    }
-    
-    // 4. Chamada IA Estruturada (generateObject) para precisão de 100%
-    console.log(`[AI_PROCESS] Solicitando decisão estruturada para ${agent.name}...`);
-    
-    const { object: result } = await generateObject({
-      model: modelInstance,
-      schema: AIAgentSchema,
-      system: `${agent.aiInstructions}
-      
-      HIERARQUIA DE AUTORIDADE:
-      - O CLIENTE (${ticket.requester.name}) é o dono do chamado.
-      - Se o CLIENTE pedir para encerrar, cancelar ou resolver, você DEVE usar suggestedStatus: 'COMPLETED'.
-      - Se um ATENDENTE sugerir encerrar, analise se há motivo (ex: cancelamento, correção confirmada). Se não, questione antes de fechar.
-      
-      ESTRUTURA NEXUS:
-      - Responda apenas o necessário, de forma elegante e profissional.
-      - Comece com saudação se for o caso.
-      
-      DECISÃO DE STATUS:
-      'COMPLETED': Resolvido ou pedido de encerramento pelo cliente.
-      'PENDING_USER': Aguardando dado ou ação do cliente.
-      'BUDGET_APPROVAL': Necessário aprovar custo/orçamento.
-      'TRIAGE': Em análise técnica interna.
-      'ESCALATE': Devolver para humano (casos complexos).`,
-      prompt: `
-        CHAMADO: ${ticket.title}
-        DESCRIÇÃO: ${ticket.description}
-        HISTÓRICO: ${conversationHistory}
-        ${latestStr}
-        CONHECIMENTO: ${contextStr}
-      `
-    });
+      const normalizedStatus = normalizeAIWorkflowStatus(geminiResult.suggestedStatus, ticket.status);
+      const aiPlannedStartDate = parseAIPlannedDate(geminiResult.plannedStartDate);
+      const aiPlannedDueDate = parseAIPlannedDate(geminiResult.plannedDueDate);
+      const hasValidPlannedRange =
+        aiPlannedStartDate &&
+        aiPlannedDueDate &&
+        aiPlannedDueDate.getTime() >= aiPlannedStartDate.getTime();
 
-    console.log(`[AI_PROCESS] Decisão de ${agent.name}: ${result.suggestedStatus}`);
-
-    // 5. Executar Decisão
-    if (result.suggestedStatus === "ESCALATE") {
-      await escalateToHuman(ticketId, agent.name!, result.message);
-    } else {
       await prisma.ticketComment.create({
-        data: { ticketId, content: result.message, authorId: agentId, isInternal: false }
+        data: {
+          ticketId,
+          content: geminiResult.response,
+          authorId: agentId,
+          isInternal: false,
+          isPrivate: false,
+        },
       });
 
-      // Se houver orçamento gerado pela IA ou detectado, salvar nos campos técnicos
-      await prisma.ticket.update({ 
-        where: { id: ticketId }, 
-        data: { 
-          status: result.suggestedStatus,
-          budgetAmount: result.budgetAmount ?? ticket.budgetAmount,
-          budgetDescription: result.budgetDescription ?? ticket.budgetDescription
-        } 
+      await prisma.ticket.update({
+        where: { id: ticketId },
+        data: {
+          status: normalizedStatus,
+          budgetAmount: geminiResult.suggestedBudget?.amount ?? ticket.budgetAmount,
+          budgetDescription: geminiResult.suggestedBudget?.description ?? ticket.budgetDescription,
+          plannedStartDate: hasValidPlannedRange ? aiPlannedStartDate : undefined,
+          plannedDueDate: hasValidPlannedRange ? aiPlannedDueDate : undefined,
+          resolutionTimeDue: hasValidPlannedRange ? aiPlannedDueDate : undefined,
+        },
       });
     }
 
-    // 6. Log de Atividade
-    await prisma.aILog.create({
-      data: {
-        agentName: agent.name || "AI Agent",
-        ticketId: ticket.id,
-        input: ticket.description,
-        output: JSON.stringify(result),
-        latency: 0,
-        userId: agent.id
-      }
-    });
+    const finalStatus = geminiResult.requires_human
+      ? 'TRIAGE'
+      : normalizeAIWorkflowStatus(geminiResult.suggestedStatus, ticket.status);
 
     await prisma.ticketTransition.create({
       data: {
         ticketId,
-        fromStatus: "TRIAGE",
-        toStatus: result.suggestedStatus === "ESCALATE" ? "TRIAGE" : result.suggestedStatus,
-        comment: `IA ${agent.name} processou com decisão estruturada.`,
-        performedById: agentId
-      }
+        fromStatus: 'TRIAGE',
+        toStatus: finalStatus,
+        comment: `IA ${agent.name} processou com o contrato padronizado Gemini.`,
+        performedById: agentId,
+      },
+    });
+  } catch (error: any) {
+    console.error('[AI_ERROR] Falha critica:', error.message);
+
+    await prisma.ticket.update({
+      where: { id: ticketId },
+      data: {
+        assigneeId: previousAssigneeId ?? userId,
+        status: previousStatus,
+      },
     });
 
-  } catch (error: any) {
-    console.error("[AI_ERROR] Falha crítica:", error.message);
-    await prisma.ticket.update({ where: { id: ticketId }, data: { assigneeId: userId } });
+    await prisma.ticketComment.create({
+      data: {
+        ticketId,
+        content: `[IA ERRO] Falha ao processar com ${agent.name}. Motivo: ${error.message}`,
+        authorId: userId,
+        isInternal: true,
+        isPrivate: true,
+      },
+    });
+
+    throw new Error(`Falha ao enviar o chamado para a IA ${agent.name}.`);
   }
 
   revalidatePath('/dashboard');
@@ -223,10 +293,22 @@ export async function checkTicketCompletenessAction(data: {
   attachments?: string[];
 }): Promise<CollectionOutput> {
   const session = await auth();
-  if (!session?.user?.id) throw new Error('Não autorizado');
+  if (!session?.user?.id) throw new Error('Nao autorizado');
+
+  let categoryName: string | undefined;
+  if (data.categoryId) {
+    const category = await prisma.category.findUnique({
+      where: { id: data.categoryId },
+      select: { name: true },
+    });
+    categoryName = category?.name;
+  }
 
   return runCollectionAgent({
-    ...data,
+    title: data.title,
+    description: data.description,
+    category: categoryName,
+    attachments: data.attachments,
     userId: (session.user as any).id,
   });
 }
@@ -236,7 +318,7 @@ export async function getTriageInsightAction(data: {
   description: string;
 }) {
   const session = await auth();
-  if (!session?.user?.id) throw new Error('Não autorizado');
+  if (!session?.user?.id) throw new Error('Nao autorizado');
 
   return runTriageAgent({
     ...data,
@@ -246,6 +328,7 @@ export async function getTriageInsightAction(data: {
 
 export async function getMagicComposeAction(data: {
   text: string;
+  title?: string;
   contextType: 'NEW_TICKET' | 'REPLY';
   ticketId?: string;
   category?: string;
@@ -253,48 +336,84 @@ export async function getMagicComposeAction(data: {
   impact?: string;
   urgency?: string;
 }): Promise<{ solution: string }> {
-  console.log(`[MAGIC_COMPOSE] Iniciando geração. Tipo: ${data.contextType}, Tamanho: ${data.text.length}`);
-  
   const session = await auth();
-  if (!session?.user?.id) {
-    console.error("[MAGIC_COMPOSE] Erro: Usuário não autenticado");
-    throw new Error('Não autorizado');
-  }
+  if (!session?.user?.id) throw new Error('Nao autorizado');
 
   try {
-    let contextStr = "";
+    let payload = '';
+
     if (data.contextType === 'NEW_TICKET') {
-      contextStr = `Título: ${data.text}\nCategoria: ${data.category || 'Geral'}\nTipo: ${data.type || 'Incidente'}\nImpacto: ${data.impact || 'Baixo'}\nUrgência: ${data.urgency || 'Baixa'}`;
+      if (!data.title?.trim() || !data.category?.trim() || !data.type?.trim() || data.text.trim().length < 20) {
+        throw new Error('Dados insuficientes para gerar a sugestao de abertura.');
+      }
+
+      payload = buildAIExecutionContext({
+        source: 'magic-compose',
+        ticket: {
+          title: data.title,
+          description: data.text,
+          category: data.category || 'Geral',
+          type: data.type || 'Incidente',
+          impact: data.impact || 'Baixo',
+          urgency: data.urgency || 'Baixa',
+        },
+        instructions: [
+          'Atue como assistente de redacao de chamados.',
+          'Use titulo, tipo e categoria como contexto para melhorar a descricao digitada.',
+          'Mantenha o tom do usuario e escreva como se fosse o proprio cliente solicitando ajuda.',
+          'Organize a descricao em linguagem simples e operacional.',
+          'Nao repita os metadados como lista no texto final.',
+        ],
+      });
     } else {
       const ticket = await prisma.ticket.findUnique({
         where: { id: parseInt(data.ticketId!) },
-        include: { comments: { take: 5, orderBy: { createdAt: 'desc' }, include: { author: true } } }
+        include: { comments: { take: 5, orderBy: { createdAt: 'desc' }, include: { author: true } } },
       });
-      const history = ticket?.comments.map(c => `${c.author.name}: ${c.content}`).join("\n") || "";
-      contextStr = `Chamado: ${ticket?.title}\nContexto: ${ticket?.type} | ${ticket?.priority}\nHistórico Recente:\n${history}`;
+
+      payload = buildAIExecutionContext({
+        source: 'magic-compose',
+        ticket: {
+          id: data.ticketId,
+          title: ticket?.title || 'Chamado',
+          description: data.text,
+          type: ticket?.type,
+          priority: ticket?.priority,
+        },
+        history: ticket?.comments.map((comment) => ({
+          role: comment.author.isAI ? 'assistant' : 'user',
+          content: `${comment.author.name}: ${comment.content}`,
+        })) || [],
+        instructions: [
+          'Reescreva a resposta mantendo a intencao original.',
+          'Seja claro, tecnico e profissional.',
+        ],
+      });
     }
 
-    console.log("[MAGIC_COMPOSE] Chamando Gemini 3.1 Flash...");
-
-    const google = createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY });
-
     const { text: suggestion } = await generateText({
-      model: google('gemini-3.1-flash-lite-preview'), 
-      system: `Você é um refinador de texto técnico da Nexus ServiceDesk.
-        Sua TAREFA ÚNICA é reescrever o texto fornecido pelo usuário para torná-lo mais claro e profissional.
-        
-        REGRAS CRÍTICAS:
-        - Retorne APENAS o texto refinado.
-        - PROIBIDO repetir ou listar os campos de contexto (Categoria, Tipo, Impacto, Urgência) no texto final. Use-os apenas para entender a gravidade e o assunto.
-        - NÃO adicione saudações, despedidas ou comentários.
-        - Mantenha a intenção original, corrigindo apenas gramática, ortografia e organização.`,
-      prompt: `Texto para refinar: "${data.text}"\n\nCONTEXTO DO SISTEMA (USE APENAS PARA ENTENDIMENTO, NÃO REPITA):\n${contextStr}`
+      model: models.reasoning,
+      system: data.contextType === 'NEW_TICKET'
+        ? `Voce e um assistente de redacao da Nexus ServiceDesk.
+Retorne apenas a descricao refinada do chamado.
+Use o contexto de titulo, tipo e categoria para melhorar a descricao enviada.
+Escreva sempre na voz do cliente, em primeira pessoa quando fizer sentido, como uma solicitacao de suporte.
+Nao responda como atendente, tecnico ou sistema interno.
+Preserve o estilo de linguagem original do cliente, apenas deixando mais claro e organizado.
+Nao transforme a resposta em checklist, a menos que isso deixe o relato mais claro.
+Nao adicione saudacoes, despedidas ou comentarios extras.
+Escreva em portugues do Brasil, com clareza e linguagem simples.`
+        : `Voce e um refinador de texto tecnico da Nexus ServiceDesk.
+Retorne apenas o texto refinado.
+Nao repita metadados do contexto no texto final.
+Nao adicione saudacoes, despedidas ou comentarios extras.
+Mantenha a intencao original, corrigindo gramatica, ortografia e organizacao.`,
+      prompt: payload,
     });
 
     return { solution: suggestion.trim() };
-
   } catch (error: any) {
-    console.error("[MAGIC_COMPOSE_ERROR] Falha crítica na geração:", error.message);
+    console.error('[MAGIC_COMPOSE_ERROR] Falha critica na geracao:', error.message);
     throw new Error(`Falha na IA: ${error.message}`);
   }
 }

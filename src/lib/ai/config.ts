@@ -1,38 +1,24 @@
-import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
-/**
- * ConfiguraÃ§Ã£o dos Provedores de IA para o I9 Chamados.
- * 
- * - Groq: Utilizado para tarefas de baixa latÃªncia e alta velocidade (Triagem, Coleta).
- * - Gemini: Utilizado para processamento de contexto longo (RAG, Curadoria).
- */
+export const GEMINI_DEFAULT_MODEL = 'gemini-3.1-flash-lite-preview';
 
-// Provider Groq (via SDK da OpenAI)
-export const groq = createOpenAI({
-  baseURL: 'https://api.groq.com/openai/v1',
-  apiKey: process.env.GROQ_API_KEY,
-});
-
-// Provider Gemini (Google)
-// Explicitly initialized to ensure the API Key is loaded from process.env
 export const google = createGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 });
 
-// Modelos Groq e Gemini
-export const models = {
-  fast: groq('llama-3.3-70b-versatile'), // Para triagem e rascunhos rÃ¡pidos
-  mini: groq('llama-3.1-8b-instant'),    // Para validaÃ§Ãµes simples
+export function resolveGeminiModelId(modelId?: string) {
+  const preferred = modelId || process.env.GEMINI_PREFERRED_MODEL || GEMINI_DEFAULT_MODEL;
+  return preferred.replace(/^models\//, '');
+}
 
-  // Modelos Google
-  reasoning: google('gemini-3.1-flash-lite-preview'), // Para RAG e anÃ¡lise de contexto
-  power: google('gemini-pro-latest'),      // Para soluÃ§Ãµes complexas
+export const models = {
+  fast: google(resolveGeminiModelId(process.env.GEMINI_FAST_MODEL || GEMINI_DEFAULT_MODEL)),
+  mini: google(resolveGeminiModelId(process.env.GEMINI_MINI_MODEL || GEMINI_DEFAULT_MODEL)),
+  reasoning: google(resolveGeminiModelId(process.env.GEMINI_REASONING_MODEL || GEMINI_DEFAULT_MODEL)),
+  power: google(resolveGeminiModelId(process.env.GEMINI_POWER_MODEL || GEMINI_DEFAULT_MODEL)),
+  next: google(resolveGeminiModelId(process.env.GEMINI_NEXT_MODEL || GEMINI_DEFAULT_MODEL)),
 };
 
-
-// Interface básica de orquestração com fallback
-export async function getModelWithFallback(priority: 'fast' | 'reasoning') {
-  if (priority === 'fast') return models.fast;
+export async function getModelWithFallback() {
   return models.reasoning;
 }

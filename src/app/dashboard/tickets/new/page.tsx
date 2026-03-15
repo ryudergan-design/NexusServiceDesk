@@ -230,7 +230,8 @@ export default function NewTicketPage() {
               <div className="flex items-center justify-between">
                 <Label htmlFor="description">Descrição Detalhada</Label>
                 <MagicCompose 
-                  text={watch("title") || ""}
+                  text={watch("description") || ""}
+                  title={watch("title") || ""}
                   contextType="NEW_TICKET"
                   category={categories.find(c => c.id === watch("categoryId"))?.name}
                   type={watch("type")}

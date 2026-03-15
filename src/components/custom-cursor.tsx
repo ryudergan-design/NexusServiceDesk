@@ -27,7 +27,13 @@ export function CustomCursor() {
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX)
       cursorY.set(e.clientY)
-      setCoords({ x: e.clientX, y: e.clientY })
+      
+      // Apenas atualizar coords se houver mudança real para economizar re-renders
+      setCoords(prev => {
+        if (Math.abs(prev.x - e.clientX) < 1 && Math.abs(prev.y - e.clientY) < 1) return prev
+        return { x: e.clientX, y: e.clientY }
+      })
+
       if (!isVisible) setIsVisible(true)
     }
 

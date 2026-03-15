@@ -20,7 +20,8 @@ Arquivos e pastas principais na raiz:
 - `prisma/` -> schema, migracoes e seeds
 - `scripts/` -> utilitarios operacionais
 - `tests/` -> testes automatizados
-- `sql/` -> referencias SQL e documentacao de banco
+- `BANCO_DE_DADOS/SQLITE/sql/` -> referencias SQL e documentacao do SQLite
+- `BANCO_DE_DADOS/SUPABASE/` -> espelho estrutural e documentacao do Supabase
 - `.planning/` -> memoria e artefatos do fluxo GSD
 
 ## Pasta `src/`

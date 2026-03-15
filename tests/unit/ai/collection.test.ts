@@ -10,7 +10,7 @@ vi.mock('ai', () => ({
 // Mock do Prisma
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    aiLog: {
+    aILog: {
       create: vi.fn().mockResolvedValue({ id: 'test-log-id' }),
     },
   },
