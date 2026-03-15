@@ -17,6 +17,10 @@ Esta pasta guarda o historico visual do projeto em formato de evidencia.
 - A pasta `2026-03-15-baseline` representa o estado atual das telas principais.
 - Cada tela possui `atual.png` como referencia base.
 
+## Comparativo mais recente
+- A pasta `2026-03-15-mobile-app` registra a rodada de refinamento mobile mais ampla.
+- Sempre que existir essa pasta, use `before.png` e `after.png` para comparar a evolucao visual.
+
 ## Telas recomendadas
 - `home-publica`
 - `login`

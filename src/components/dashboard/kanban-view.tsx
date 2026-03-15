@@ -89,7 +89,7 @@ function KanbanColumn({
   const visibleTickets = tickets.slice(startIndex, endIndex)
 
   return (
-    <Reorder.Item key={column.id} value={column} className="w-[320px] flex flex-col gap-4">
+    <Reorder.Item key={column.id} value={column} className="flex w-[88vw] max-w-[320px] flex-col gap-4 sm:w-[320px]">
       <div className={cn("flex items-center justify-between px-4 py-3 rounded-xl border-t-4 border-x border-b border-white/10 bg-slate-900/50 transition-all", column.color)}>
         <div className="flex items-center gap-3">
           <GripHorizontal className="h-4 w-4 text-white/20 cursor-grab active:cursor-grabbing hover:text-white/40 transition-colors" />
@@ -102,7 +102,7 @@ function KanbanColumn({
         </Badge>
       </div>
 
-      <div ref={containerRef} className="flex-1 p-1 overflow-y-auto custom-scrollbar max-h-[calc(100vh-280px)] min-h-[200px]">
+      <div ref={containerRef} className="custom-scrollbar flex-1 overflow-y-auto p-1 max-h-[calc(100vh-320px)] min-h-[200px] sm:max-h-[calc(100vh-280px)]">
         {tickets.length > 0 ? (
           <div style={{ paddingTop, paddingBottom }}>
             <AnimatePresence mode="popLayout">
@@ -267,8 +267,8 @@ export function KanbanView({ tickets, currentUser, onSelectTicket, onUpdate }: K
   }, [normalizedTickets])
 
   return (
-    <div className="flex-1 overflow-x-auto pb-10 custom-scrollbar">
-      <Reorder.Group axis="x" values={columns} onReorder={handleReorder} className="flex gap-6 min-w-max h-full px-4">
+    <div className="custom-scrollbar flex-1 overflow-x-auto pb-10">
+      <Reorder.Group axis="x" values={columns} onReorder={handleReorder} className="flex h-full min-w-max gap-4 px-1 sm:gap-6 sm:px-4">
         {columns.map((column) => (
           <KanbanColumn
             key={column.id}

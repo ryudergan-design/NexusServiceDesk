@@ -18,6 +18,7 @@ Dar visibilidade operacional ao sistema e criar a experiencia principal de atend
 - Otimizacao de renderizacao com virtualizacao.
 - Ajustes mobile para manter conteudo acessivel em detalhes de chamado e gestao de usuarios.
 - Evidencias de validacao mobile com capturas antes/depois e relatorio dedicado.
+- A evolucao ampla de experiencia mobile em nivel de aplicativo foi extraida para a `phase-10-experiencia-mobile-app`.
 
 ## Evidencias no codigo
 - `src/lib/sla.ts`

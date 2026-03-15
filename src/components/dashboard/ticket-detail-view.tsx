@@ -319,7 +319,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
   return (
     <div className="h-full overflow-x-auto overflow-y-auto overscroll-contain">
       <HighTechStatusTransition active={isStatusTransitionActive} status={transitionStatus} />
-      <div className="mx-auto min-w-[720px] md:min-w-[980px] max-w-6xl space-y-6 px-4 py-6 pb-24 sm:space-y-8 sm:p-6 lg:p-8">
+      <div className="mx-auto min-w-[640px] md:min-w-[980px] max-w-6xl space-y-6 px-3 py-4 pb-24 sm:space-y-8 sm:p-6 lg:p-8">
         {/* Modals */}
         <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
           <DialogContent className="w-[calc(100vw-2rem)] rounded-2xl bg-slate-900 border-white/10 text-white sm:max-w-[425px]">
@@ -358,8 +358,8 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                 <span className="text-[11px] text-white/60 font-black tracking-widest uppercase bg-white/5 px-2 py-0.5 rounded border border-white/5">ID {ticketId}</span>
               </div>
               <div className="overflow-x-auto pb-1">
-                <div className="flex min-w-max items-center gap-3 pr-3">
-                  <h1 className="max-w-[34rem] break-words [overflow-wrap:anywhere] text-2xl font-black text-white tracking-tight leading-tight sm:text-3xl">{ticket.title}</h1>
+                <div className="flex min-w-max items-start gap-3 pr-3">
+                  <h1 className="max-w-[18rem] break-words [overflow-wrap:anywhere] text-xl font-black text-white tracking-tight leading-tight sm:max-w-[34rem] sm:text-3xl">{ticket.title}</h1>
                   <RobotAssignment 
                     ticketId={ticket.id} 
                     currentAssigneeId={ticket.assigneeId} 
@@ -392,8 +392,8 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                     <Button variant="outline" onClick={() => handleStatusButtonClick("COMPLETED")} className="border-emerald-500/30 text-emerald-500 h-10 px-4 font-black uppercase text-[11px] tracking-widest hidden sm:flex">Resolver</Button>
                   )}
                   {!isClosedTicketStatus(ticket.status) && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-10 w-10 border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"><MoreHorizontal className="h-5 w-5 text-white/70" /></Button></DropdownMenuTrigger>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-10 w-10 border border-white/10 bg-white/5 hover:bg-white/10 transition-colors"><MoreHorizontal className="h-5 w-5 text-white/70" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-64 bg-slate-950 border-white/10 text-white shadow-2xl p-2 rounded-2xl">
                         <DropdownMenuLabel className="text-[10px] uppercase font-black text-white/30 px-3 py-2 tracking-widest">Ações Avançadas</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => { fetchStaff(); setIsForwardDialogOpen(true) }} className="gap-3 p-3 cursor-pointer"><div className="h-8 w-8 rounded-lg bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20"><Send className="h-4 w-4 text-indigo-400" /></div><span className="font-bold text-xs">Encaminhar</span></DropdownMenuItem>
@@ -431,7 +431,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
 
             {canInternal ? (
               <Card ref={formRef} className={cn("border-white/10 transition-all rounded-3xl overflow-hidden shadow-xl", pendingStatus ? "bg-primary/5 border-primary/40 border-t-2" : "bg-white/[0.03]")}>
-                <CardHeader className="bg-white/5 py-4 px-6">
+                <CardHeader className="bg-white/5 py-4 px-4 sm:px-6">
                   <CardTitle className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-2">
                       <MessageSquare className="h-4 w-4" /> {pendingStatus ? "Alterar Status" : "Atividade"}
@@ -458,12 +458,12 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="overflow-x-auto p-4 sm:p-6 lg:p-8">
-                  <form onSubmit={handleSubmitComment} className="space-y-6">
+                  <form onSubmit={handleSubmitComment} className="space-y-5 sm:space-y-6">
                     <div className="relative rounded-xl overflow-hidden">
                       <TechPowerOverlay active={isPowerActive} />
                       <RichTextEditor placeholder="Descreva aqui..." value={comment} onChange={(v) => setComment(v)} />
                     </div>
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div className="overflow-x-auto pb-1"><div className="flex min-w-max items-center gap-6 pr-3"><div className="flex items-center gap-3"><input type="checkbox" id="isInternal" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} className="h-5 w-5 rounded border-white/10 bg-black/40 text-primary" /><Label htmlFor="isInternal" className="text-xs font-black uppercase tracking-widest text-white/40 flex items-center gap-2">Privada <Lock className="h-3 w-3" /></Label></div><div className="flex items-center gap-3"><Label className="text-xs font-black uppercase tracking-widest text-white/40">Minutos:</Label><Input type="number" min="0" className="w-20 h-10 bg-black/40 border-white/10 text-xs font-bold text-center" value={timeSpent} onChange={(e) => setTimeSpent(e.target.value)} /><Button type="button" variant="outline" size="icon" onClick={pasteTime} className="h-10 w-10 border-white/10"><History className="h-4 w-4" /></Button></div></div></div><Button type="submit" disabled={isSubmitting || !comment.trim()} className="bg-primary hover:bg-primary/80 h-11 w-full sm:w-auto px-8 font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-primary/20">Registrar</Button></div></form></CardContent>
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between"><div className="overflow-x-auto pb-1"><div className="flex min-w-max flex-wrap items-center gap-4 pr-3 sm:flex-nowrap sm:gap-6"><div className="flex items-center gap-3"><input type="checkbox" id="isInternal" checked={isInternal} onChange={(e) => setIsInternal(e.target.checked)} className="h-5 w-5 rounded border-white/10 bg-black/40 text-primary" /><Label htmlFor="isInternal" className="text-xs font-black uppercase tracking-widest text-white/40 flex items-center gap-2">Privada <Lock className="h-3 w-3" /></Label></div><div className="flex items-center gap-3"><Label className="text-xs font-black uppercase tracking-widest text-white/40">Minutos:</Label><Input type="number" min="0" className="w-20 h-10 bg-black/40 border-white/10 text-xs font-bold text-center" value={timeSpent} onChange={(e) => setTimeSpent(e.target.value)} /><Button type="button" variant="outline" size="icon" onClick={pasteTime} className="h-10 w-10 border-white/10"><History className="h-4 w-4" /></Button></div></div></div><Button type="submit" disabled={isSubmitting || !comment.trim()} className="bg-primary hover:bg-primary/80 h-11 w-full sm:w-auto px-8 font-black uppercase text-[11px] tracking-[0.2em] shadow-lg shadow-primary/20">Registrar</Button></div></form></CardContent>
               </Card>
             ) : (!isClosedTicketStatus(ticket.status) && (
               <Card className="border-white/10 bg-white/[0.03] border-dashed rounded-3xl overflow-hidden shadow-xl">

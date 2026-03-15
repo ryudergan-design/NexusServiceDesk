@@ -1,19 +1,19 @@
 "use client"
 
-import { useState, useEffect, Suspense, useDeferredValue, useMemo } from "react"
+import { Suspense, useDeferredValue, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Plus, Search, Filter } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { Filter, Plus, Search } from "lucide-react"
+import { toast } from "sonner"
 
+import { DeskView } from "@/components/dashboard/desk-view"
+import { KanbanView } from "@/components/dashboard/kanban-view"
+import { TicketQuickView } from "@/components/dashboard/ticket-quick-view"
+import { ViewMode, ViewToggle } from "@/components/dashboard/view-toggle"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { KanbanView } from "@/components/dashboard/kanban-view"
-import { DeskView } from "@/components/dashboard/desk-view"
-import { ViewToggle, ViewMode } from "@/components/dashboard/view-toggle"
-import { TicketQuickView } from "@/components/dashboard/ticket-quick-view"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
 import { isClosedTicketStatus } from "@/lib/ticket-status"
 
 function TicketsPageContent() {
@@ -23,13 +23,13 @@ function TicketsPageContent() {
   const [viewMode, setViewMode] = useState<ViewMode>("kanban")
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+  const [currentUser, setCurrentUser] = useState<any>(null)
+  const [selectedAgent, setSelectedAgent] = useState<any>(null)
 
   const searchParams = useSearchParams()
   const view = searchParams ? searchParams.get("view") : null
   const agentId = searchParams ? searchParams.get("agentId") : null
   const searchFromUrl = searchParams ? searchParams.get("search") : null
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [selectedAgent, setSelectedAgent] = useState<any>(null)
   const deferredSearchTerm = useDeferredValue(searchTerm)
 
   const fetchTickets = async () => {
@@ -50,26 +50,25 @@ function TicketsPageContent() {
   }
 
   useEffect(() => {
-    if (searchFromUrl) {
-      setSearchTerm(searchFromUrl)
-    }
+    if (searchFromUrl) setSearchTerm(searchFromUrl)
   }, [searchFromUrl])
 
   useEffect(() => {
-    if (agentId) {
-      fetch("/api/users/staff")
-        .then((res) => {
-          if (!res.ok) throw new Error("Falha ao carregar atendentes")
-          return res.json()
-        })
-        .then((data) => {
-          const agent = data.find((item: any) => item.id === agentId)
-          setSelectedAgent(agent)
-        })
-        .catch(() => setSelectedAgent(null))
-    } else {
+    if (!agentId) {
       setSelectedAgent(null)
+      return
     }
+
+    fetch("/api/users/staff")
+      .then((res) => {
+        if (!res.ok) throw new Error("Falha ao carregar atendentes")
+        return res.json()
+      })
+      .then((data) => {
+        const agent = data.find((item: any) => item.id === agentId)
+        setSelectedAgent(agent)
+      })
+      .catch(() => setSelectedAgent(null))
   }, [agentId])
 
   useEffect(() => {
@@ -134,10 +133,11 @@ function TicketsPageContent() {
           return true
       }
     })
-  }, [tickets, deferredSearchTerm, currentUser, agentId, view])
+  }, [agentId, currentUser, deferredSearchTerm, tickets, view, viewMode])
 
   const getPageTitle = () => {
     if (agentId) return `Fila de: ${selectedAgent?.name || "Carregando..."}`
+
     switch (view) {
       case "assigned":
         return "Meus Atendimentos"
@@ -159,12 +159,7 @@ function TicketsPageContent() {
   }
 
   return (
-    <div
-      className={cn(
-        "space-y-8 h-full flex flex-col transition-all duration-500",
-        viewMode === "kanban" ? "max-w-none" : "max-w-7xl mx-auto w-full px-4"
-      )}
-    >
+    <div className={cn("flex h-full flex-col space-y-6 transition-all duration-500 sm:space-y-8", viewMode === "kanban" ? "max-w-none" : "mx-auto w-full max-w-7xl")}>
       <TicketQuickView
         ticketId={selectedTicketId}
         open={isQuickViewOpen}
@@ -172,51 +167,53 @@ function TicketsPageContent() {
         onUpdate={fetchTickets}
       />
 
-      <div
-        className={cn(
-          "flex flex-col gap-4 md:flex-row md:items-center md:justify-between",
-          viewMode === "kanban" && "px-2"
-        )}
-      >
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">{getPageTitle()}</h1>
-          <p className="text-muted-foreground">Gerencie e acompanhe o ciclo de vida dos atendimentos.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <ViewToggle mode={viewMode} onChange={handleViewChange} />
-          <Link href="/dashboard/tickets/new">
-            <Button className="bg-primary hover:bg-primary/90 text-white">
-              <Plus className="mr-2 h-4 w-4" /> Novo Chamado
-            </Button>
-          </Link>
+      <div className={cn("rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4 shadow-[0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:p-5", viewMode === "kanban" && "lg:mx-2")}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-cyan-200">Central operacional</p>
+            <h1 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">{getPageTitle()}</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/45">
+              Gerencie e acompanhe o ciclo de vida dos atendimentos com leitura confortável no mobile.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:justify-end">
+            <ViewToggle mode={viewMode} onChange={handleViewChange} />
+            <Link href="/dashboard/tickets/new" className="w-full sm:w-auto">
+              <Button className="h-11 w-full rounded-2xl bg-primary text-[11px] font-black uppercase tracking-[0.18em] text-white hover:bg-primary/90 sm:w-auto">
+                <Plus className="mr-2 h-4 w-4" />
+                Novo Chamado
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className={cn("flex items-center gap-4", viewMode === "kanban" && "px-2")}>
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+      <div className={cn("grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]", viewMode === "kanban" && "lg:mx-2")}>
+        <div className="relative min-w-0">
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-white/30" />
           <Input
             placeholder="Buscar por ID ou título..."
-            className="pl-10 bg-white/5 border-white/10 w-full max-w-sm"
+            className="h-11 w-full rounded-2xl border-white/10 bg-white/5 pl-10"
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
         </div>
         <Button
           variant="outline"
-          size="icon"
-          className="border-white/10 bg-white/5"
+          className="h-11 rounded-2xl border-white/10 bg-white/5 px-4 text-[11px] font-black uppercase tracking-[0.18em]"
           aria-label="Filtros avançados"
           onClick={() => toast.info("Filtros avançados em desenvolvimento.")}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="mr-2 h-4 w-4" />
+          Filtros
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex-1 flex items-center justify-center text-white/20 animate-pulse">Carregando chamados...</div>
+        <div className="flex flex-1 items-center justify-center text-white/20 animate-pulse">Carregando chamados...</div>
       ) : (
-        <div className="flex-1 min-h-0">
+        <div className="min-h-0 flex-1">
           <AnimatePresence mode="wait">
             <motion.div
               key={viewMode}
@@ -227,19 +224,9 @@ function TicketsPageContent() {
               className="h-full"
             >
               {viewMode === "kanban" ? (
-                <KanbanView
-                  tickets={filteredTickets}
-                  currentUser={currentUser}
-                  onSelectTicket={handleSelectTicket}
-                  onUpdate={fetchTickets}
-                />
+                <KanbanView tickets={filteredTickets} currentUser={currentUser} onSelectTicket={handleSelectTicket} onUpdate={fetchTickets} />
               ) : (
-                <DeskView
-                  tickets={filteredTickets}
-                  currentUser={currentUser}
-                  onSelectTicket={handleSelectTicket}
-                  onUpdate={fetchTickets}
-                />
+                <DeskView tickets={filteredTickets} currentUser={currentUser} onSelectTicket={handleSelectTicket} onUpdate={fetchTickets} />
               )}
             </motion.div>
           </AnimatePresence>
@@ -253,7 +240,7 @@ export default function TicketsPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex-1 flex items-center justify-center text-white/20 animate-pulse">
+        <div className="flex flex-1 items-center justify-center text-white/20 animate-pulse">
           Carregando Central de Chamados...
         </div>
       }

@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { AnimatePresence, motion } from "framer-motion"
 import { AlertTriangle, Clock, Filter, Search, UserPlus } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import { DeskView } from "@/components/dashboard/desk-view"
@@ -41,7 +41,9 @@ export default function UnassignedTicketsPage() {
     }
 
     fetchTickets()
-    fetch("/api/auth/session").then((res) => res.json()).then((data) => setCurrentUser(data?.user))
+    fetch("/api/auth/session")
+      .then((res) => res.json())
+      .then((data) => setCurrentUser(data?.user))
   }, [])
 
   const handleViewChange = (mode: ViewMode) => {
@@ -60,8 +62,8 @@ export default function UnassignedTicketsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           assigneeId: session.user.id,
-          comment: "Chamado assumido pelo atendente via fila de triagem."
-        })
+          comment: "Chamado assumido pelo atendente via fila de triagem.",
+        }),
       })
 
       if (res.ok) {
@@ -71,7 +73,7 @@ export default function UnassignedTicketsPage() {
         return
       }
 
-      toast.error("Nao foi possivel assumir o chamado.")
+      toast.error("Não foi possível assumir o chamado.")
     } catch {
       toast.error("Erro ao assumir chamado.")
     }
@@ -82,16 +84,12 @@ export default function UnassignedTicketsPage() {
     setIsQuickViewOpen(true)
   }
 
-  const filteredTickets = tickets.filter((ticket) =>
-    ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ticket.id.toString().includes(searchTerm)
+  const filteredTickets = tickets.filter(
+    (ticket) => ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) || ticket.id.toString().includes(searchTerm)
   )
 
   return (
-    <div className={cn(
-      "space-y-8 h-full flex flex-col transition-all duration-500",
-      viewMode === "kanban" ? "max-w-none" : "max-w-7xl mx-auto w-full px-4"
-    )}>
+    <div className={cn("flex h-full flex-col space-y-6 transition-all duration-500 sm:space-y-8", viewMode === "kanban" ? "max-w-none" : "mx-auto w-full max-w-7xl")}>
       <TicketQuickView
         ticketId={selectedTicketId}
         open={isQuickViewOpen}
@@ -99,51 +97,50 @@ export default function UnassignedTicketsPage() {
         onUpdate={fetchTickets}
       />
 
-      <div className={cn(
-        "flex flex-col gap-4 md:flex-row md:items-center md:justify-between",
-        viewMode === "kanban" && "px-2"
-      )}>
-        <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight text-white">
-            <AlertTriangle className="h-8 w-8 text-amber-500" /> Fila de Triagem
-          </h1>
-          <p className="mt-2 text-muted-foreground">Chamados que ainda nao possuem um atendente atribuido.</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <ViewToggle mode={viewMode} onChange={handleViewChange} />
+      <div className={cn("rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4 shadow-[0_20px_40px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:p-5", viewMode === "kanban" && "lg:mx-2")}>
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-200">Fila de triagem</p>
+            <h1 className="mt-2 flex items-center gap-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
+              <AlertTriangle className="h-6 w-6 text-amber-500 sm:h-8 sm:w-8" />
+              Sem atendente
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/45">
+              Chamados aguardando o primeiro responsável, com leitura confortável no mobile e alternância entre Desk e Kanban.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center lg:justify-end">
+            <ViewToggle mode={viewMode} onChange={handleViewChange} />
+          </div>
         </div>
       </div>
 
-      <div className={cn(
-        "flex items-center gap-4",
-        viewMode === "kanban" && "px-2"
-      )}>
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+      <div className={cn("grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]", viewMode === "kanban" && "lg:mx-2")}>
+        <div className="relative min-w-0">
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-white/30" />
           <Input
-            placeholder="Buscar por ID ou titulo..."
-            className="w-full max-w-sm border-white/10 bg-white/5 pl-10"
+            placeholder="Buscar por ID ou título..."
+            className="h-11 w-full rounded-2xl border-white/10 bg-white/5 pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <Button
           variant="outline"
-          size="icon"
-          className="border-white/10 bg-white/5"
-          aria-label="Filtros avancados"
-          onClick={() => toast.info("Filtros avancados em desenvolvimento.")}
+          className="h-11 rounded-2xl border-white/10 bg-white/5 px-4 text-[11px] font-black uppercase tracking-[0.18em]"
+          aria-label="Filtros avançados"
+          onClick={() => toast.info("Filtros avançados em desenvolvimento.")}
         >
-          <Filter className="h-4 w-4" />
+          <Filter className="mr-2 h-4 w-4" />
+          Filtros
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="flex flex-1 items-center justify-center text-white/20 animate-pulse">
-          Carregando fila...
-        </div>
+        <div className="flex flex-1 items-center justify-center text-white/20 animate-pulse">Carregando fila...</div>
       ) : (
-        <div className="flex-1 min-h-0">
+        <div className="min-h-0 flex-1">
           {filteredTickets.length > 0 ? (
             <AnimatePresence mode="wait">
               <motion.div
@@ -155,12 +152,7 @@ export default function UnassignedTicketsPage() {
                 className="h-full"
               >
                 {viewMode === "kanban" ? (
-                  <KanbanView
-                    tickets={filteredTickets}
-                    currentUser={currentUser}
-                    onSelectTicket={handleSelectTicket}
-                    onUpdate={fetchTickets}
-                  />
+                  <KanbanView tickets={filteredTickets} currentUser={currentUser} onSelectTicket={handleSelectTicket} onUpdate={fetchTickets} />
                 ) : (
                   <DeskView
                     tickets={filteredTickets}
@@ -171,7 +163,7 @@ export default function UnassignedTicketsPage() {
                       <Button
                         size="sm"
                         variant="secondary"
-                        className="h-8 gap-1 text-[11px]"
+                        className="h-8 gap-1 rounded-xl text-[11px] font-black uppercase tracking-[0.16em]"
                         onClick={() => handleAssignToMe(ticket.id)}
                       >
                         <UserPlus className="h-3 w-3" /> Assumir
@@ -184,7 +176,7 @@ export default function UnassignedTicketsPage() {
           ) : (
             <div className="flex h-64 flex-col items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/[0.02]">
               <Clock className="mb-2 h-8 w-8 text-white/10" />
-              <p className="text-sm text-white/20">Tudo limpo! Nenhum chamado aguardando triagem.</p>
+              <p className="text-sm text-white/20">Tudo limpo. Nenhum chamado aguardando triagem.</p>
             </div>
           )}
         </div>

@@ -164,12 +164,18 @@ export default function NewTicketPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
+    <div className="mx-auto max-w-4xl space-y-6 sm:space-y-8">
+      <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4 shadow-[0_18px_36px_rgba(0,0,0,0.18)] backdrop-blur-xl sm:p-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <Button variant="outline" size="icon" onClick={() => router.back()} className="h-11 w-11 rounded-2xl border-white/10 bg-white/5">
           <X className="h-4 w-4" />
         </Button>
-        <h1 className="text-3xl font-bold tracking-tight text-white">Abrir Novo Chamado</h1>
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.22em] text-cyan-200">Novo chamado</p>
+          <h1 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">Abrir Novo Chamado</h1>
+          <p className="mt-2 text-sm leading-6 text-white/45">Preencha o contexto principal e use a IA para lapidar o texto sem perder a voz do cliente.</p>
+        </div>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -322,9 +328,11 @@ export default function NewTicketPage() {
           </Card>
         </div>
 
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => router.back()}>Cancelar</Button>
-          <Button type="submit" disabled={isLoading} className="min-w-[150px]">
+        <div className="sticky bottom-[calc(env(safe-area-inset-bottom)+5.75rem)] z-20 flex flex-col gap-3 rounded-[1.5rem] border border-white/10 bg-[#030712]/88 p-3 backdrop-blur-2xl sm:static sm:flex-row sm:justify-end sm:border-0 sm:bg-transparent sm:p-0">
+          <Button type="button" variant="outline" onClick={() => router.back()} className="h-11 rounded-2xl border-white/10 bg-white/5">
+            Cancelar
+          </Button>
+          <Button type="submit" disabled={isLoading} className="h-11 min-w-[150px] rounded-2xl text-[11px] font-black uppercase tracking-[0.18em]">
             {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Criar Chamado"}
           </Button>
         </div>

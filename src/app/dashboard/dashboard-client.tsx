@@ -214,7 +214,7 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
   const aiOverview = statsData?.aiOverview
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-xl font-black tracking-tight text-white">
@@ -241,7 +241,8 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
         )}
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="-mx-1 overflow-x-auto pb-1 sm:mx-0 sm:overflow-visible">
+        <div className="flex min-w-max gap-4 sm:grid sm:min-w-0 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((stat, index) => (
           <motion.button
             key={stat.label}
@@ -251,7 +252,7 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
             transition={{ delay: index * 0.06 }}
             onClick={() => router.push(stat.href)}
             className={cn(
-              "group relative overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/[0.04] p-5 text-left transition-all hover:-translate-y-1 hover:border-cyan-400/25 hover:bg-white/[0.06]",
+              "group relative w-[250px] overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/[0.04] p-5 text-left transition-all hover:-translate-y-1 hover:border-cyan-400/25 hover:bg-white/[0.06] sm:w-auto",
               stat.glow
             )}
           >
@@ -271,9 +272,10 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
             </div>
           </motion.button>
         ))}
+        </div>
       </div>
 
-      <div className={cn("grid gap-6", isStaffMode ? "xl:grid-cols-[1.08fr_0.92fr]" : "xl:grid-cols-[1.05fr_0.95fr]")}>
+      <div className={cn("grid gap-5 sm:gap-6", isStaffMode ? "xl:grid-cols-[1.08fr_0.92fr]" : "xl:grid-cols-[1.05fr_0.95fr]")}>
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -291,7 +293,8 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
             {isStaffMode ? <Waypoints className="h-5 w-5 text-cyan-300" /> : <Sparkles className="h-5 w-5 text-fuchsia-300" />}
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="-mx-1 mt-5 overflow-x-auto pb-1 md:mx-0 md:overflow-visible">
+            <div className="flex min-w-max gap-4 md:grid md:min-w-0 md:grid-cols-3">
             {quickLinks.map((card, index) => (
               <motion.button
                 key={card.label}
@@ -300,7 +303,7 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.14 + index * 0.07 }}
                 onClick={() => router.push(card.href)}
-                className="rounded-3xl border border-white/8 bg-[#08101d] p-4 text-left transition-all hover:border-cyan-400/20 hover:bg-[#0b1527]"
+                className="w-[248px] rounded-3xl border border-white/8 bg-[#08101d] p-4 text-left transition-all hover:border-cyan-400/20 hover:bg-[#0b1527] md:w-auto"
               >
                 <div className={cn("flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04]", card.tone)}>
                   <card.icon className="h-5 w-5" />
@@ -309,6 +312,7 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
                 <p className="mt-2 text-sm leading-6 text-white/40">{card.text}</p>
               </motion.button>
             ))}
+            </div>
           </div>
         </motion.div>
 
@@ -327,7 +331,7 @@ export function DashboardClient({ statsData, activeRole }: DashboardClientProps)
               <Ticket className="h-5 w-5 text-fuchsia-300" />
             </div>
 
-            <div className="mt-5 h-[320px] w-full">
+            <div className="mt-5 h-[260px] w-full sm:h-[320px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={statsData?.categoryStats ?? []}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />

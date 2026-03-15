@@ -1,13 +1,14 @@
 # Projeto: I9 Chamados
 
 ## Estado Atual
-O projeto esta consolidado como uma central de atendimento moderna com base em `Next.js + Prisma + SQLite`, operando com visualizacao `Kanban` e `Desk`, fluxo de chamados completo, assistentes de IA com Gemini, organizacao documental estruturada em `9 fases` e documentacao institucional oficial em HTML e PDF.
+O projeto esta consolidado como uma central de atendimento moderna com base em `Next.js + Prisma + SQLite`, operando com visualizacao `Kanban` e `Desk`, fluxo de chamados completo, assistentes de IA com Gemini, organizacao documental estruturada em `10 fases`, documentacao institucional oficial em HTML e PDF e uma camada mobile mais proxima de aplicativo.
 
 ## Produto em Operacao
 - Portal de chamados com abertura, acompanhamento e historico.
 - Dashboard para atendimento e administracao.
 - Dashboard principal autenticado com leitura high-tech por perfil.
 - Dashboard principal autenticado com area dedicada para leitura operacional da IA.
+- Navegacao mobile com barra inferior, busca rapida e shell mais proximo de app.
 - Home com hero high-tech, sinais operacionais essenciais e copy enxuta para apresentacao forte sem cansar a leitura.
 - Visualizacao dual `Kanban` e `Desk`.
 - Atribuicao de chamados para atendentes e IAs.
@@ -45,6 +46,7 @@ O foco atual nao e mais construir o MVP base, e sim:
 - Fase 7: dados, seeds e simulacoes
 - Fase 8: estrategia de banco e espelho futuro
 - Fase 9: documentacao institucional do projeto
+- Fase 10: experiencia mobile app
 
 ## Diretriz Atual
 A base oficial do produto e o frontend/backend presente em `src/`, sustentado por `prisma/schema.prisma`, com planejamento vivo em `.planning/`, documentacao institucional em `PROJETO/documentacao-institucional/` e triagem de legado em `DIVERGENTES/`.

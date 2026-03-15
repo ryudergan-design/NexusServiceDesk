@@ -16,6 +16,7 @@ Consolidar a identidade visual e a experiencia do produto no padrao high-tech ad
 - Polimento de copy, acentuacao e hierarquia visual.
 - Refinamentos de UX na experiencia publica e autenticada.
 - Governanca de mudancas visuais com evidencias por tela, dispositivo e data.
+- A camada de experiencia mobile com sensacao de aplicativo foi aprofundada na `phase-10-experiencia-mobile-app`.
 
 ## Evidencias no codigo
 - `src/app/page.tsx`

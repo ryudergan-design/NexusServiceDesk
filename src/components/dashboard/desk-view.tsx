@@ -137,9 +137,9 @@ export function DeskView({
   const visibleTickets = sortedTickets.slice(startIndex, endIndex)
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-950/50 overflow-hidden shadow-2xl backdrop-blur-xl h-full flex flex-col">
-      <div ref={containerRef} className="flex-1 overflow-auto custom-scrollbar min-h-[420px]">
-        <div className="min-w-[1360px]">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/50 shadow-2xl backdrop-blur-xl">
+      <div ref={containerRef} className="custom-scrollbar flex-1 overflow-auto min-h-[420px]">
+        <div className="min-w-[1180px] sm:min-w-[1360px]">
       <div
         className="sticky top-0 z-10 grid border-b border-white/5 bg-slate-950/95 px-4 py-3 backdrop-blur-xl"
         style={{ gridTemplateColumns }}

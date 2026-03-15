@@ -1,7 +1,7 @@
 # Requisitos: I9 Chamados
 
 ## Escopo Atual Consolidado
-Este documento reflete o que o projeto considera como base funcional atual apos a reorganizacao em `9 fases`.
+Este documento reflete o que o projeto considera como base funcional atual apos a reorganizacao em `10 fases`.
 
 ## Requisitos Funcionais
 
@@ -73,6 +73,8 @@ Este documento reflete o que o projeto considera como base funcional atual apos 
 ### RNF02 - Experiencia
 - A interface deve ser responsiva em desktop e mobile.
 - O visual deve seguir a linguagem moderna e high-tech consolidada no projeto.
+- O uso mobile deve priorizar conforto operacional, leitura forte, navegacao do tipo app e acesso ao conteudo sem bloqueio critico.
+- Mudancas visuais relevantes devem gerar evidencias `before/after` em `PROJETO/mudancas-visuais/`.
 
 ### RNF03 - Rastreabilidade
 - O planejamento em `.planning/` deve refletir a evolucao consolidada do projeto.

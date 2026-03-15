@@ -1,10 +1,13 @@
 "use client"
 
-import { Bell, Search, LogOut, UserCircle, ShieldCheck } from "lucide-react"
-import { MobileNav } from "@/components/mobile-nav"
-import { useSession, signOut } from "next-auth/react"
+import { useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { signOut, useSession } from "next-auth/react"
+import { Bell, LogOut, Search, ShieldCheck, Sparkles, UserCircle, X } from "lucide-react"
+
+import { MobileNav } from "@/components/mobile-nav"
+import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,9 +16,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Badge } from "@/components/ui/badge"
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 export function Header() {
@@ -24,6 +26,8 @@ export function Header() {
   const user = session?.user as any
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
   const hasLoggedNotificationError = useRef(false)
 
   const activeRole = user?.activeRole || "USER"
@@ -52,6 +56,13 @@ export function Header() {
 
   const handleSignOut = async () => {
     await signOut({ redirect: true, callbackUrl: "/auth/login" })
+  }
+
+  const handleSearch = (term: string) => {
+    const safeTerm = term.trim()
+    if (!safeTerm) return
+    router.push(`/dashboard/tickets?search=${encodeURIComponent(safeTerm)}`)
+    setMobileSearchOpen(false)
   }
 
   const fetchNotifications = async () => {
@@ -106,41 +117,99 @@ export function Header() {
   }
 
   return (
-    <header className="flex h-16 items-center justify-between border-b border-white/10 bg-black/20 px-4 md:px-8 backdrop-blur-xl">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-white/10 bg-[#030712]/85 px-3 backdrop-blur-2xl md:px-6 lg:px-8">
+      <div className="flex min-w-0 items-center gap-3 md:gap-4">
         <MobileNav />
+
+        <div className="min-w-0 lg:hidden">
+          <p className="truncate text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200">Nexus ServiceDesk</p>
+          <p className="truncate text-[10px] text-white/35">{activeRole === "USER" ? "Modo cliente" : "Operação técnica"}</p>
+        </div>
+
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
           <input
             placeholder="Pesquisar chamados..."
             aria-label="Pesquisar chamados por ID ou título"
             className="w-64 rounded-full border border-white/10 bg-white/5 py-2 pl-10 pr-4 text-sm text-white outline-none transition-all focus:border-primary focus:ring-1 focus:ring-primary"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                const term = (e.target as HTMLInputElement).value
-                if (term) {
-                  router.push(`/dashboard/tickets?search=${encodeURIComponent(term)}`)
-                }
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                handleSearch((event.target as HTMLInputElement).value)
               }
             }}
           />
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+        <Sheet open={mobileSearchOpen} onOpenChange={setMobileSearchOpen}>
+          <SheetTrigger asChild>
+            <button
+              aria-label="Abrir busca"
+              className="rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 text-white/60 transition-colors hover:bg-white/[0.07] hover:text-white md:hidden"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </SheetTrigger>
+          <SheetContent side="top" className="border-b border-white/10 bg-[#030712]/95 px-4 pb-6 pt-4 text-white backdrop-blur-2xl">
+            <SheetTitle className="sr-only">Buscar chamados</SheetTitle>
+            <div className="mx-auto flex w-full max-w-xl flex-col gap-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200">Busca rápida</p>
+                  <p className="mt-1 text-sm text-white/45">Localize tickets por ID ou título sem sair do fluxo.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileSearchOpen(false)}
+                  className="rounded-2xl border border-white/10 bg-white/[0.04] p-2 text-white/60"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.04] p-3 shadow-[0_16px_40px_rgba(0,0,0,0.25)]">
+                <div className="flex items-center gap-3 rounded-2xl border border-cyan-400/10 bg-black/30 px-4 py-3">
+                  <Search className="h-4 w-4 text-cyan-300" />
+                  <input
+                    autoFocus
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault()
+                        handleSearch(searchTerm)
+                      }
+                    }}
+                    placeholder="Ex: 542 ou nota fiscal"
+                    className="w-full bg-transparent text-sm text-white outline-none placeholder:text-white/25"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleSearch(searchTerm)}
+                className="flex h-12 items-center justify-center gap-2 rounded-2xl bg-cyan-400/90 text-[11px] font-black uppercase tracking-[0.18em] text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.24)]"
+              >
+                <Sparkles className="h-4 w-4" />
+                Buscar agora
+              </button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
               aria-label="Ver notificações"
-              className="relative rounded-full p-2 text-white/60 transition-colors hover:bg-white/5 hover:text-white"
+              className="relative rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 text-white/60 transition-colors hover:bg-white/[0.07] hover:text-white"
             >
               <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary animate-pulse" />
-              )}
+              {unreadCount > 0 && <span className="absolute right-2 top-2 h-2 w-2 animate-pulse rounded-full bg-primary" />}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-80 overflow-hidden border-white/10 bg-slate-950 p-0 text-white shadow-2xl">
+          <DropdownMenuContent align="end" className="w-[calc(100vw-1.5rem)] max-w-80 overflow-hidden border-white/10 bg-slate-950 p-0 text-white shadow-2xl">
             <DropdownMenuLabel className="flex items-center justify-between border-b border-white/10 bg-white/5 p-4">
               Notificações
               {unreadCount > 0 && (
@@ -162,9 +231,7 @@ export function Header() {
                   >
                     <div className="flex w-full items-center justify-between gap-4">
                       <span className="text-xs font-bold">{notification.title}</span>
-                      <span className="text-[9px] text-white/20">
-                        {new Date(notification.createdAt).toLocaleDateString()}
-                      </span>
+                      <span className="text-[9px] text-white/20">{new Date(notification.createdAt).toLocaleDateString()}</span>
                     </div>
                     <p className="text-xs leading-snug text-white/60">{notification.message}</p>
                     {notification.link && (
@@ -175,9 +242,7 @@ export function Header() {
                   </DropdownMenuItem>
                 ))
               ) : (
-                <div className="p-8 text-center text-xs italic text-white/20">
-                  Nenhuma notificação por aqui.
-                </div>
+                <div className="p-8 text-center text-xs italic text-white/20">Nenhuma notificação por aqui.</div>
               )}
             </div>
             {notifications.length > 0 && (
@@ -193,7 +258,7 @@ export function Header() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="group flex items-center gap-3 border-l border-white/10 pl-6 outline-none transition-all hover:opacity-80 active:scale-95">
+            <button className="group flex items-center gap-2 border-l border-white/10 pl-3 outline-none transition-all hover:opacity-80 active:scale-95 sm:gap-3 sm:pl-4 md:pl-6">
               <div className="hidden text-right sm:block">
                 <p className="mb-1 text-sm font-black leading-none tracking-tight text-white transition-colors group-hover:text-primary">
                   {user?.name || "Usuário"}
@@ -201,7 +266,7 @@ export function Header() {
                 <div className="flex items-center justify-end gap-1.5">
                   <div
                     className={cn(
-                      "h-1.5 w-1.5 rounded-full animate-pulse",
+                      "h-1.5 w-1.5 animate-pulse rounded-full",
                       activeRole === "USER" ? "bg-blue-500" : "bg-emerald-500"
                     )}
                   />

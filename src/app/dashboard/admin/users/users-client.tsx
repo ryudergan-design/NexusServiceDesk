@@ -2,43 +2,25 @@
 
 import { useState } from "react"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+  Bot,
+  MoreHorizontal,
+  Pencil,
+  Search,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  User as UserIcon,
+  UserCheck,
+  UserPlus,
+  UserX,
+  Users as UsersIcon,
+} from "lucide-react"
+import { toast } from "sonner"
+
+import { updateUserStatus, createUser, updateUser } from "@/lib/actions/users"
+import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  MoreHorizontal,
-  ShieldCheck,
-  ShieldAlert,
-  UserCheck,
-  UserX,
-  Search,
-  UserPlus,
-  Pencil,
-  Shield,
-  Users as UsersIcon,
-  Bot,
-  User as UserIcon,
-} from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { updateUserStatus, createUser, updateUser } from "@/lib/actions/users"
-import { toast } from "sonner"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { cn } from "@/lib/utils"
-
 import {
   Dialog,
   DialogContent,
@@ -47,6 +29,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   Select,
@@ -55,6 +46,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface UsersClientProps {
   initialUsers: any[]
@@ -64,11 +57,9 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
   const [users, setUsers] = useState(initialUsers)
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("USER")
-
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<any>(null)
   const [loading, setLoading] = useState(false)
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -123,9 +114,10 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
     setIsDialogOpen(true)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault()
     setLoading(true)
+
     try {
       if (editingUser) {
         await updateUser(editingUser.id, formData)
@@ -206,7 +198,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
   const renderUserCards = (roleUsers: any[], aiFilter: boolean) => {
     if (!roleUsers.length) {
       return (
-        <div className="rounded-xl border border-dashed border-white/10 bg-black/20 p-6 text-center text-sm italic text-white/30 md:hidden">
+        <div className="rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-center text-sm italic text-white/30 md:hidden">
           Nenhum registro encontrado.
         </div>
       )
@@ -215,7 +207,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
     return (
       <div className="space-y-3 md:hidden">
         {roleUsers.map((user) => (
-          <div key={user.id} className="rounded-2xl border border-white/10 bg-black/30 p-4 shadow-[0_0_25px_rgba(0,0,0,0.18)]">
+          <div key={user.id} className="rounded-[1.6rem] border border-white/10 bg-black/30 p-4 shadow-[0_0_25px_rgba(0,0,0,0.18)]">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0 space-y-1">
                 <div className="flex items-center gap-2">
@@ -269,14 +261,14 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
     )
   }
 
-  const renderUserTable = (roleFilter: string, aiFilter: boolean = false) => {
+  const renderUserTable = (roleFilter: string, aiFilter = false) => {
     const roleUsers = filteredUsers.filter((user) => (aiFilter ? user.isAI === true : user.role === roleFilter && !user.isAI))
 
     return (
       <div className="mt-4 space-y-3">
         {renderUserCards(roleUsers, aiFilter)}
 
-        <div className="hidden overflow-hidden rounded-xl border border-white/10 bg-black/40 md:block">
+        <div className="hidden overflow-hidden rounded-2xl border border-white/10 bg-black/40 md:block">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-white/5">
@@ -315,11 +307,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
                       </TableCell>
                       {!aiFilter && <TableCell className="text-sm text-white/60">{user.department || "-"}</TableCell>}
                       {!aiFilter && <TableCell className="text-sm text-white/60">{user.jobTitle || "-"}</TableCell>}
-                      {aiFilter && (
-                        <TableCell className="text-xs font-mono text-white/60">
-                          {user.aiModel || "gemini-3.1-flash-lite-preview"}
-                        </TableCell>
-                      )}
+                      {aiFilter && <TableCell className="text-xs font-mono text-white/60">{user.aiModel || "gemini-3.1-flash-lite-preview"}</TableCell>}
                       <TableCell className="text-right">{renderUserActions(user, aiFilter)}</TableCell>
                     </TableRow>
                   ))
@@ -340,21 +328,23 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1 md:max-w-sm">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
-          <Input
-            placeholder="Buscar..."
-            className="border-white/10 bg-white/5 pl-10 text-white"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-4 shadow-[0_18px_36px_rgba(0,0,0,0.18)] backdrop-blur-xl">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="relative flex-1 md:max-w-sm">
+            <Search className="absolute left-3 top-3.5 h-4 w-4 text-white/30" />
+            <Input
+              placeholder="Buscar..."
+              className="h-11 rounded-2xl border-white/10 bg-white/5 pl-10 text-white"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          {activeTab !== "BOT" && (
+            <Button onClick={() => handleOpenCreate()} className="h-11 w-full gap-2 rounded-2xl bg-primary text-[11px] font-black uppercase tracking-[0.18em] text-white hover:bg-primary/90 md:w-auto">
+              <UserPlus className="h-4 w-4" /> Novo Usuário
+            </Button>
+          )}
         </div>
-        {activeTab !== "BOT" && (
-          <Button onClick={() => handleOpenCreate()} className="w-full gap-2 bg-primary text-white hover:bg-primary/90 md:w-auto">
-            <UserPlus className="h-4 w-4" /> Novo Usuário
-          </Button>
-        )}
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -480,17 +470,17 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
       </Dialog>
 
       <Tabs defaultValue="USER" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="h-12 w-full justify-start gap-2 overflow-x-auto border border-white/10 bg-white/5 p-1">
-          <TabsTrigger value="ADMIN" className="gap-2 px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white">
+        <TabsList className="h-auto w-full justify-start gap-2 overflow-x-auto rounded-[1.4rem] border border-white/10 bg-white/5 p-1.5">
+          <TabsTrigger value="ADMIN" className="h-10 gap-2 rounded-2xl px-5 font-black uppercase tracking-[0.14em] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Shield className="h-4 w-4" /> Admins
           </TabsTrigger>
-          <TabsTrigger value="AGENT" className="gap-2 px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white">
+          <TabsTrigger value="AGENT" className="h-10 gap-2 rounded-2xl px-5 font-black uppercase tracking-[0.14em] data-[state=active]:bg-primary data-[state=active]:text-white">
             <UsersIcon className="h-4 w-4" /> Atendentes
           </TabsTrigger>
-          <TabsTrigger value="USER" className="gap-2 px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white">
+          <TabsTrigger value="USER" className="h-10 gap-2 rounded-2xl px-5 font-black uppercase tracking-[0.14em] data-[state=active]:bg-primary data-[state=active]:text-white">
             <UserIcon className="h-4 w-4" /> Clientes
           </TabsTrigger>
-          <TabsTrigger value="BOT" className="gap-2 px-6 font-bold data-[state=active]:bg-primary data-[state=active]:text-white">
+          <TabsTrigger value="BOT" className="h-10 gap-2 rounded-2xl px-5 font-black uppercase tracking-[0.14em] data-[state=active]:bg-primary data-[state=active]:text-white">
             <Bot className="h-4 w-4" /> Agentes (IA)
           </TabsTrigger>
         </TabsList>
@@ -502,7 +492,7 @@ export function UsersClient({ initialUsers }: UsersClientProps) {
           <div className="mb-4 flex justify-end">
             <Button
               onClick={() => handleOpenCreate("BOT")}
-              className="w-full gap-2 bg-amber-500 font-black text-black shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:bg-amber-600 md:w-auto"
+              className="h-11 w-full gap-2 rounded-2xl bg-amber-500 font-black uppercase tracking-[0.18em] text-black shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:bg-amber-600 md:w-auto"
             >
               <Bot className="h-4 w-4" /> Novo Agente IA
             </Button>

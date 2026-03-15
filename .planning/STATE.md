@@ -1,7 +1,7 @@
 # Estado do Projeto: I9 Chamados
 
 ## Situacao Atual
-O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de maturidade estrutural da base.
+O projeto esta operacional, documentado em `10 fases consolidadas` e em fase de maturidade estrutural da base.
 
 ## Resumo do Progresso
 - [x] Fases consolidadas em 8 blocos documentais
@@ -23,6 +23,9 @@ O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de m
 - [x] Rodada documentada de simulacao com 100 chamados e processamento real por IA
 - [x] Documentacao institucional oficial com HTML, PDF e capturas reais do sistema
 - [x] Estrutura de governanca visual criada com baseline atual de telas em desktop e mobile
+- [x] Shell mobile refinado com barra inferior, busca rapida e melhor sensacao de aplicativo
+- [x] Dashboard, central de chamados, fila sem atendente, perfil, novo chamado e gestao de usuarios refinados para mobile
+- [x] Script de captura comparativa criado para gerar before/after das telas principais
 
 ## Estrutura Oficial Atual
 - Produto principal: `src/`
@@ -38,7 +41,7 @@ O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de m
 - O fluxo GSD continua ancorado em `.planning/`.
 - O banco oficial nao mudou para Supabase.
 - O espelho do Supabase existe apenas como preparacao estrutural.
-- A documentacao historica foi condensada em 9 fases para reduzir repeticao, melhorar leitura e incluir a camada institucional do projeto.
+- A documentacao historica foi condensada em 10 fases para reduzir repeticao, melhorar leitura e incluir as camadas institucional e mobile do projeto.
 
 ## Ponto Atual de Trabalho
-O foco agora e revisar a experiencia mobile com mais profundidade, manter a documentacao coerente com o executado, preservar o material institucional oficial e decidir o que deve ser reaproveitado ou eliminado de `DIVERGENTES/`.
+O foco agora e revisar a experiencia mobile com profundidade crescente, manter a documentacao coerente com o executado, preservar o material institucional oficial e decidir o que deve ser reaproveitado ou eliminado de `DIVERGENTES/`.

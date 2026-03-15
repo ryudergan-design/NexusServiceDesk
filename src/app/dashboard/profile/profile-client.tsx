@@ -40,25 +40,25 @@ export function ProfileClient({ user, activeRole }: ProfileClientProps) {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card className="border-white/10 bg-black/40 backdrop-blur-xl">
+    <div className="mx-auto max-w-2xl">
+      <Card className="overflow-hidden rounded-[1.9rem] border-white/10 bg-black/40 backdrop-blur-xl">
         <CardHeader>
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-primary to-accent p-0.5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="h-16 w-16 rounded-full bg-gradient-to-tr from-primary to-accent p-0.5 shadow-[0_0_30px_rgba(59,130,246,0.25)]">
               <div className="flex h-full w-full items-center justify-center rounded-full bg-black text-2xl font-bold text-white uppercase">
                 {user.name?.substring(0, 2)}
               </div>
             </div>
             <div>
               <CardTitle className="text-2xl text-white">{user.name}</CardTitle>
-              <CardDescription className="text-white/40">{user.email}</CardDescription>
+              <CardDescription className="break-all text-white/40">{user.email}</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="name" className="text-white/60">Nome Completo</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-2.5 h-4 w-4 text-white/20" />

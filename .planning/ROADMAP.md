@@ -1,7 +1,7 @@
 # Roadmap: I9 Chamados
 
 ## Visao Geral
-O roadmap oficial do projeto foi consolidado em `9 fases` documentadas dentro de `.planning/phase-1-fundacao-auth-base` ate `.planning/phase-9-documentacao-institucional`.
+O roadmap oficial do projeto foi consolidado em `10 fases` documentadas dentro de `.planning/phase-1-fundacao-auth-base` ate `.planning/phase-10-experiencia-mobile-app`.
 
 ## Fase 1 - Fundacao, Auth e Base do Produto
 Status: concluida
@@ -67,6 +67,13 @@ Status: concluida
 - documento em HTML para manutencao versionada
 - PDF final para apresentacao e compartilhamento
 
+## Fase 10 - Experiencia Mobile App
+Status: concluida
+- refinamento mobile com sensacao de aplicativo
+- navegacao mobile reforcada
+- dashboard, chamados e telas-chave ajustados
+- comparativos visuais completos em desktop e mobile
+
 ## Mapa de Absorcao Historica
 - Nova fase 1 absorve a antiga `phase-1`
 - Nova fase 2 absorve a antiga `phase-2` e a parte operacional da antiga `phase-7`
@@ -77,8 +84,9 @@ Status: concluida
 - Nova fase 7 absorve a parte de seeds e simulacoes da antiga `phase-7` e os relatorios operacionais posteriores
 - Nova fase 8 absorve a antiga `phase-14`
 - Nova fase 9 registra a documentacao institucional consolidada do produto apos a reorganizacao estrutural
+- Nova fase 10 registra a elevacao da experiencia mobile para um padrao proximo de aplicativo
 
 ## Estado Atual do Roadmap
-- Fases documentadas: `9`
+- Fases documentadas: `10`
 - Base ativa: consolidada
-- Foco atual: manutencao coerente da plataforma, da documentacao viva e do material institucional oficial
+- Foco atual: manutencao coerente da plataforma, da documentacao viva, do material institucional oficial e da evolucao mobile
