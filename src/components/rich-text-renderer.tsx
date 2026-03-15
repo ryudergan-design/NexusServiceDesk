@@ -23,7 +23,7 @@ export function RichTextRenderer({ content, className }: RichTextRendererProps) 
   };
 
   return (
-    <div className={cn("relative", className)}>
+    <div className={cn("relative break-words [overflow-wrap:anywhere]", className)}>
       {isHTML ? (
         <div 
           className="rich-text-content"
@@ -54,16 +54,20 @@ export function RichTextRenderer({ content, className }: RichTextRendererProps) 
         }
         .rich-text-content p {
           margin-bottom: 0.75rem;
+          overflow-wrap: anywhere;
+          word-break: break-word;
         }
         .rich-text-content ul {
           list-style-type: disc;
           padding-left: 1.5rem;
           margin-bottom: 0.75rem;
+          overflow-wrap: anywhere;
         }
         .rich-text-content ol {
           list-style-type: decimal;
           padding-left: 1.5rem;
           margin-bottom: 0.75rem;
+          overflow-wrap: anywhere;
         }
         .rich-text-content blockquote {
           border-left: 4px solid var(--border);
@@ -77,6 +81,7 @@ export function RichTextRenderer({ content, className }: RichTextRendererProps) 
           padding: 0.2rem 0.4rem;
           border-radius: 0.25rem;
           font-family: monospace;
+          overflow-wrap: anywhere;
         }
         .rich-text-content pre {
           background-color: #0f172a;
@@ -100,6 +105,10 @@ export function RichTextRenderer({ content, className }: RichTextRendererProps) 
           margin-bottom: 1rem;
           border: 1px solid var(--border);
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .rich-text-content * {
+          max-width: 100%;
+          overflow-wrap: anywhere;
         }
       `}</style>
     </div>

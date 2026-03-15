@@ -319,7 +319,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
   return (
     <div className="h-full overflow-x-auto overflow-y-auto overscroll-contain">
       <HighTechStatusTransition active={isStatusTransitionActive} status={transitionStatus} />
-      <div className="mx-auto min-w-[980px] max-w-6xl space-y-6 px-4 py-6 pb-24 sm:space-y-8 sm:p-6 lg:p-8">
+      <div className="mx-auto min-w-[720px] md:min-w-[980px] max-w-6xl space-y-6 px-4 py-6 pb-24 sm:space-y-8 sm:p-6 lg:p-8">
         {/* Modals */}
         <Dialog open={isApprovalDialogOpen} onOpenChange={setIsApprovalDialogOpen}>
           <DialogContent className="w-[calc(100vw-2rem)] rounded-2xl bg-slate-900 border-white/10 text-white sm:max-w-[425px]">
@@ -359,7 +359,7 @@ export function TicketDetailView({ ticketId, onClose, onUpdate }: TicketDetailVi
               </div>
               <div className="overflow-x-auto pb-1">
                 <div className="flex min-w-max items-center gap-3 pr-3">
-                  <h1 className="text-2xl font-black text-white tracking-tight leading-tight sm:text-3xl">{ticket.title}</h1>
+                  <h1 className="max-w-[34rem] break-words [overflow-wrap:anywhere] text-2xl font-black text-white tracking-tight leading-tight sm:text-3xl">{ticket.title}</h1>
                   <RobotAssignment 
                     ticketId={ticket.id} 
                     currentAssigneeId={ticket.assigneeId} 

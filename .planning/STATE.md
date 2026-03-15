@@ -22,6 +22,7 @@ O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de m
 - [x] Tratamento de fetch endurecido em notificacoes, sidebar e carregamento da central
 - [x] Rodada documentada de simulacao com 100 chamados e processamento real por IA
 - [x] Documentacao institucional oficial com HTML, PDF e capturas reais do sistema
+- [x] Estrutura de governanca visual criada com baseline atual de telas em desktop e mobile
 
 ## Estrutura Oficial Atual
 - Produto principal: `src/`
@@ -30,6 +31,7 @@ O projeto esta operacional, documentado em `9 fases consolidadas` e em fase de m
 - Banco espelho futuro: `BANCO_DE_DADOS/SUPABASE/`
 - Portais de navegacao humana: `PROJETO/`, `DESENVOLVIMENTO/`, `SITE/`, `BANCO_DE_DADOS/`
 - Documentacao institucional: `PROJETO/documentacao-institucional/`
+- Historico visual: `PROJETO/mudancas-visuais/`
 
 ## Decisoes Consolidadas
 - O runtime principal permanece no padrao nativo do `Next.js`.
